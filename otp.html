@@ -3,43 +3,40 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width">
-<meta name="color-scheme" content="dark">
-<meta name="supported-color-schemes" content="dark">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
 <title>Your formattion code</title>
 <!--[if mso]><style>table,td{font-family:Helvetica,Arial,sans-serif!important}</style><![endif]-->
 <style>
-:root{color-scheme:dark;supported-color-schemes:dark}
 @media (max-width:620px){.outer{padding:16px 8px 24px!important}.pad{padding:28px 24px 24px!important}.code{font-size:36px!important;line-height:44px!important;letter-spacing:.16em!important}.title{font-size:24px!important;line-height:30px!important}}
 @media (max-width:400px){.code{font-size:30px!important;line-height:38px!important;letter-spacing:.12em!important}.pad{padding:24px 20px 20px!important}}
+@media (prefers-color-scheme:dark){.card{background-color:#1C1F22!important;border-color:#1C1F22!important}.inner{background-color:#181A1D!important}.ink{color:#F4EFE6!important}.muted{color:#9A8F82!important}}
 </style>
 </head>
-<!-- Always dark: the card carries its own colours, so mail apps have nothing light to repaint.
-     Backgrounds are set three ways (bgcolor, background-color, gradient image) because the
-     Gmail app recolours flat backgrounds in dark mode but leaves background images alone. -->
 <body style="margin:0;padding:0;">
 <span style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">Your code is {{ .Token }}. It lasts 10 minutes.&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</span>
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
 <tr><td class="outer" align="center" style="padding:32px 16px 40px;">
   <!--[if mso]><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560"><tr><td><![endif]-->
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1C1F22" style="width:100%;max-width:560px;background-color:#1C1F22;background-image:linear-gradient(#1C1F22,#1C1F22);border-radius:20px;">
+  <table role="presentation" class="card" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#FBF9F5" style="width:100%;max-width:560px;background-color:#FBF9F5;border:1px solid #ECE6DC;border-radius:20px;">
     <tr><td style="padding:8px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
         <tr><td style="padding:16px 16px 20px;">
-          <a href="https://platform.formattion.ai" style="display:inline-block;text-decoration:none;"><img src="https://platform.formattion.ai/assets/email/lockup-bright.png" width="191" height="18" alt="platform | formattion ai" style="display:block;width:191px;height:18px;border:0;color:#F4EFE6;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;"></a>
+          <a href="https://platform.formattion.ai" class="ink" style="text-decoration:none;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:18px;line-height:20px;color:#000000;"><span class="ink" style="font-weight:500;color:#000000;">platform</span><span class="muted" style="font-weight:300;color:#9A8F82;">&nbsp;&nbsp;|&nbsp;&nbsp;</span><span class="ink" style="font-weight:300;color:#000000;">formattion ai</span></a>
         </td></tr>
-        <tr><td class="pad" bgcolor="#181A1D" style="background-color:#181A1D;background-image:linear-gradient(#181A1D,#181A1D);border-radius:12px;padding:40px 40px 36px;">
+        <tr><td class="pad inner" bgcolor="#F4EFE6" style="background-color:#F4EFE6;border-radius:12px;padding:40px 40px 36px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-            <tr><td class="title" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:28px;font-weight:500;line-height:34px;color:#F4EFE6;mso-line-height-rule:exactly;">Your code</td></tr>
+            <tr><td class="title ink" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:28px;font-weight:500;line-height:34px;color:#000000;mso-line-height-rule:exactly;">Your code</td></tr>
             <tr><td style="height:28px;line-height:28px;font-size:1px;">&nbsp;</td></tr>
-            <tr><td class="code" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:44px;font-weight:300;line-height:52px;letter-spacing:.22em;color:#F4EFE6;font-variant-numeric:tabular-nums;mso-line-height-rule:exactly;">{{ .Token }}</td></tr>
+            <tr><td class="code ink" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:44px;font-weight:300;line-height:52px;letter-spacing:.22em;color:#000000;font-variant-numeric:tabular-nums;mso-line-height-rule:exactly;">{{ .Token }}</td></tr>
           </table>
         </td></tr>
         <tr><td style="padding:20px 16px 16px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-            <tr><td colspan="2" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;font-weight:400;line-height:20px;color:#9A8F82;padding-bottom:12px;">It lasts 10 minutes. If you didn't ask for it, ignore this email.</td></tr>
+            <tr><td colspan="2" class="muted" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;font-weight:400;line-height:20px;color:#9A8F82;padding-bottom:12px;">It lasts 10 minutes. If you didn't ask for it, ignore this email.</td></tr>
             <tr>
-              <td style="vertical-align:middle;"><a href="https://formattion.ai" style="display:inline-block;text-decoration:none;"><img src="https://platform.formattion.ai/assets/email/mark-bright.png" width="20" height="20" alt="" style="display:block;width:20px;height:20px;border:0;"></a></td>
-              <td width="100%" align="right" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#9A8F82;vertical-align:middle;">Swindon · 2026</td>
+              <td class="muted" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#9A8F82;vertical-align:middle;white-space:nowrap;"><a href="https://formattion.ai" class="muted" style="text-decoration:none;color:#9A8F82;">formattion ai</a></td>
+              <td width="100%" align="right" class="muted" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#9A8F82;vertical-align:middle;">Swindon · 2026</td>
             </tr>
           </table>
         </td></tr>
