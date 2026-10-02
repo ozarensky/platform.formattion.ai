@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/auth.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -51,12 +54,15 @@
         </sc-if>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:4px">
           <sc-if value="{{ stepCode }}" hint-placeholder-val="{{ false }}">
-            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="text" on-click="{{ onChangeContact }}" hint-size="80px,44px">Change</x-import>
+            <div style="display:flex;align-items:center;gap:4px;margin-left:-12px;flex-wrap:wrap">
+              <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="text" on-click="{{ onChangeContact }}" hint-size="80px,44px">Change</x-import>
+              <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="text" on-click="{{ onResend }}" disabled="{{ resendDisabled }}" hint-size="120px,44px">{{ resendLabel }}</x-import>
+            </div>
           </sc-if>
           <sc-if value="{{ stepContact }}" hint-placeholder-val="{{ true }}">
             <span></span>
           </sc-if>
-          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="primary" type="submit" on-click="{{ onSubmit }}" hint-size="120px,44px">{{ submitLabel }}</x-import>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="primary" type="submit" on-click="{{ onSubmit }}" disabled="{{ busy }}" hint-size="120px,44px">{{ submitLabel }}</x-import>
         </div>
       </form>
     </section>
@@ -76,10 +82,47 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;demoFail&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behaviour&quot;}}">
 class Component extends DCLogic {
-  state = { step: 'contact', contact: '', code: '', error: '', safeTop: 0 };
-  componentDidMount() { try { const st = +new URLSearchParams(location.search).get('top') || 0; if (st) this.setState({ safeTop: st }); } catch (e) {} }
+  state = { step: 'contact', contact: '', code: '', error: '', safeTop: 0, busy: false, cooldown: 0 };
+  componentDidMount() {
+    try { const st = +new URLSearchParams(location.search).get('top') || 0; if (st) this.setState({ safeTop: st }); } catch (e) {}
+    if (window.fpAuth) window.fpAuth.redirectIfSignedIn('Platform.dc.html');
+    this.tuneInputs();
+  }
+  componentDidUpdate() { this.tuneInputs(); }
+  componentWillUnmount() { clearInterval(this.timer); }
+  // The DS Input has no props for these; set them so phones offer the right keyboard and fill the code from the email.
+  tuneInputs() {
+    const set = (sel, attrs) => { const el = document.querySelector(sel); if (el) Object.keys(attrs).forEach(k => el.setAttribute(k, attrs[k])); };
+    set('input[placeholder="Email or mobile"]', { autocomplete: 'email', inputmode: 'email', autocapitalize: 'off', spellcheck: 'false' });
+    set('input[placeholder="000000"]', { autocomplete: 'one-time-code', inputmode: 'numeric', pattern: '[0-9]*' });
+  }
+  startCooldown() {
+    clearInterval(this.timer);
+    this.setState({ cooldown: 60 });
+    this.timer = setInterval(() => {
+      const left = this.state.cooldown - 1;
+      this.setState({ cooldown: Math.max(0, left) });
+      if (left <= 0) clearInterval(this.timer);
+    }, 1000);
+  }
+  async send() {
+    const email = this.state.contact.trim().toLowerCase();
+    this.setState({ busy: true, error: '' });
+    const res = await window.fpAuth.sendCode(email);
+    this.setState({ busy: false });
+    if (!res.ok) { this.setState({ error: res.message }); return; }
+    this.setState({ step: 'code', code: '' });
+    this.startCooldown();
+  }
+  async verify(code) {
+    if (this.state.busy) return;
+    this.setState({ busy: true, error: '' });
+    const res = await window.fpAuth.verifyCode(this.state.contact.trim().toLowerCase(), code);
+    if (!res.ok) { this.setState({ busy: false, error: res.message, code: '' }); return; }
+    window.location.replace('Platform.dc.html');
+  }
   renderVals() {
-    const { step, contact, code, error } = this.state;
+    const { step, contact, code, error, busy, cooldown } = this.state;
     const isPhone = /^[\d\s+]+$/.test(contact.trim());
     const stepContact = step === 'contact', stepCode = step === 'code';
     return {
@@ -90,21 +133,29 @@ class Component extends DCLogic {
       showError: !!error,
       errorText: error,
       codeLabel: 'Code ' + (isPhone ? 'texted to ' : 'emailed to ') + contact.trim(),
-      submitLabel: stepContact ? 'Send code' : 'Log in',
+      busy,
+      submitLabel: busy ? (stepContact ? 'Sending…' : 'Checking…') : (stepContact ? 'Send code' : 'Log in'),
+      resendLabel: cooldown > 0 ? 'Send again in ' + cooldown + 's' : 'Send again',
+      resendDisabled: busy || cooldown > 0,
       onContact: e => this.setState({ contact: e.target.value, error: '' }),
-      onCode: e => this.setState({ code: e.target.value.replace(/\D/g, '').slice(0, 6), error: '' }),
-      onChangeContact: () => this.setState({ step: 'contact', code: '', error: '' }),
+      onCode: e => {
+        const next = e.target.value.replace(/\D/g, '').slice(0, 6);
+        this.setState({ code: next, error: '' });
+        if (next.length === 6) this.verify(next);
+      },
+      onChangeContact: () => { clearInterval(this.timer); this.setState({ step: 'contact', code: '', error: '', cooldown: 0 }); },
+      onResend: () => { if (!busy && cooldown === 0) this.send(); },
       onSubmit: e => {
         e && e.preventDefault && e.preventDefault();
+        if (busy) return;
         if (stepContact) {
-          const ok = /\S+@\S+\.\S+/.test(contact) || (isPhone && contact.replace(/\D/g, '').length >= 10);
-          if (!ok) { this.setState({ error: 'Enter the email or mobile your company registered.' }); return; }
-          this.setState({ step: 'code', error: '' });
+          if (isPhone) { this.setState({ error: "Mobile log-in isn't switched on yet. Use your email." }); return; }
+          if (!/\S+@\S+\.\S+/.test(contact)) { this.setState({ error: 'Enter the email your company registered.' }); return; }
+          this.send();
           return;
         }
         if (code.length !== 6) { this.setState({ error: 'Enter all six digits.' }); return; }
-        if (this.props.demoFail) { this.setState({ error: 'That code isn\'t right or has run out. Ask for a new one.' }); return; }
-        window.location.href = 'Platform.dc.html';
+        this.verify(code);
       }
     };
   }

@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/auth.js"></script>
+<script>window.fpAuth && window.fpAuth.requireSession('index.html');</script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -1089,11 +1093,11 @@ class Component extends DCLogic {
     return {
       offline,
       menuItems: ['today', 'projects', 'money', 'contractors', 'operatives', 'equipment'],
-      menuSecondary: ['company'],
+      menuSecondary: ['company', 'sign out'],
       menuCurrent,
       menuFooter: ['FORMATTION AI LTD', 'PLATFORM 0.1'],
       clientLogo: this.props.clientLogo || (dark ? 'assets/lockup-bright.svg' : 'assets/lockup.svg'),
-      onMenu: it => this.go(it, { selId: null, opId: null, from: it }, true),
+      onMenu: it => it === 'sign out' ? window.fpAuth && window.fpAuth.signOut('index.html') : this.go(it, { selId: null, opId: null, from: it }, true),
       crumb: isContractor ? 'contractor' : isProject ? 'project' : isDetail ? 'retention' : isClaim ? 'claim' : isSent ? 'sent' : isOperative ? 'operative' : isUnit ? 'equipment' : isInvite || isInvited ? 'invite' : isApprove || isApproved ? 'approve' : screen,
       isInvite, isInvited, isApprove, isApproved, inv, cand,
       hasPending: pendingAll.length > 0,
