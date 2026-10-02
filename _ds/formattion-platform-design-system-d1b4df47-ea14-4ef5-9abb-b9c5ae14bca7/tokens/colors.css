@@ -1,0 +1,64 @@
+:root {
+  /* Screen grounds */
+  --bg:        #F4EFE6;  /* paper — page ground */
+  --bg2:       #ECE6DC;  /* panel — cards, sidebar */
+  --bg3:       #E2DBD0;  /* hover, active nav */
+  --work:      #FBF9F5;  /* work surface — tables, inputs */
+  /* Documents: PDFs, print. Never tinted. */
+  --doc:       #FFFFFF;
+  /* Ink */
+  --ink:       #000000;  /* titles, primary, icons */
+  --ink-body:  #4A4038;  /* running text */
+  --muted:     #9A8F82;  /* meta, placeholders */
+  /* Lines */
+  --line:      rgba(28,24,20,0.16);
+  --dim:       rgba(28,24,20,0.09);
+  --dash:      rgba(28,24,20,0.32);  /* empty slots */
+  /* Glass (top bar + menu only) */
+  --glass:     rgba(244,239,230,0.30);
+  --fade0:     rgba(244,239,230,0);
+  /* Subcontractor brand slots — replaced at onboarding. Placeholder values. */
+  --brand:         #6E8299;
+  --brand-shade-1: #56697F;
+  --brand-shade-2: #DCE1E7;
+  /* Status — always a tag with a word */
+  --ok-fg:   #1E6B34; --ok-bg:   #A2EAB5;
+  --warn-fg: #7A4E00; --warn-bg: #FFD159;
+  --bad-fg:  #9E1F0A; --bad-bg:  #FFA88E;
+  --info-fg: #1D5A9C; --info-bg: #A2CDFF;
+  /* Semantic aliases */
+  --surface-page: var(--bg);
+  --surface-card: var(--bg2);
+  --surface-hover: var(--bg3);
+  --surface-work: var(--work);
+  --surface-document: var(--doc);
+  --text-title: var(--ink);
+  --text-body: var(--ink-body);
+  --text-meta: var(--muted);
+  --border: var(--line);
+  --divider: var(--dim);
+  --focus: var(--brand);
+  --wm-light: block; /* @kind other */
+  --wm-dark: none; /* @kind other */
+}
+/* Dark — the swap: ink becomes ground, paper becomes ink. */
+[data-theme="dark"], .dark {
+  --bg:       #000000;
+  --bg2:      #1C1F22;
+  --bg3:      #242729;
+  --work:     #181A1D;
+  --ink:      #F4EFE6;
+  --ink-body: #F4EFE6;
+  --muted:    #9A8F82;
+  --line:     rgba(237,236,234,0.12);
+  --dim:      rgba(237,236,234,0.07);
+  --dash:     rgba(237,236,234,0.24);
+  --glass:    rgba(0,0,0,0.30);
+  --fade0:    rgba(0,0,0,0);
+  --wm-light: none; /* @kind other */
+  --wm-dark:  block; /* @kind other */
+  --ok-fg: #7BDA98;  --ok-bg: #17492E;
+  --warn-fg: #FDC752; --warn-bg: #553C05;
+  --bad-fg: #FF8A6B;  --bad-bg: #591C0E;
+  --info-fg: #79B8F6; --info-bg: #12375A;
+}

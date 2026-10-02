@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="icon" href="assets/mark.svg">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/radius.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/effects.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/base.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/styles.css">
+  <script src="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/_ds_bundle.js"></script>
+  <style>
+    html, body { min-height: 100%; }
+    a { color: var(--ink); text-decoration: none; }
+    a:hover { opacity: .45; }
+    textarea, input, button { font-family: inherit; }
+    html[data-menu-open="1"] body, html[data-chat-open="1"] body { overflow: hidden; }
+    textarea::placeholder { color: var(--muted); font-weight: 300; }
+    @media (max-width: 768px) {
+      [data-mcard="paper"] { background: transparent !important; border-radius: 0 !important; padding: 10px 0 14px !important; border-top: 1px solid var(--line) !important; }
+      [data-mcard="paper"] ul, [data-mcard="paper"] dl, [data-mcard="paper"] ol { background: transparent !important; border-radius: 0 !important; }
+      [data-mcard="paper"] li, [data-mcard="paper"] dl > div { padding-left: 0 !important; padding-right: 0 !important; }
+      [data-mcard="paper"] li button { padding-left: 0 !important; padding-right: 0 !important; }
+      [data-stats] > div > span:last-child { font-size: clamp(20px, 6.2vw, 28px) !important; overflow-wrap: anywhere; }
+      [data-stats] > div { padding: 14px 16px !important; min-width: 0; }
+    }
+  </style>
+  <script src="assets/scroll-pill.js"></script>
+</helmet>
+
+<div style="min-height:100vh;background:var(--bg);font-family:var(--sans);color:var(--ink-body);display:flex;flex-direction:column;padding-right:{{ contentInset }};padding-left:{{ contentInsetLeft }};box-sizing:border-box;transition:padding .3s cubic-bezier(.4,0,.2,1)">
+
+  <x-import component-from-global-scope="PlatformTopBar" from="./TopBar.jsx" items="{{ menuItems }}" secondary="{{ menuSecondary }}" current="{{ menuCurrent }}" on-select="{{ onMenu }}" footer="{{ menuFooter }}" logo-src="{{ clientLogo }}" safe-top="{{ safeTop }}" hint-size="100%,0px"></x-import>
+
+  <div style="height:{{ topOffset }}"></div>
+
+  <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:{{ mainWidth }};width:100%;margin:16px auto 0;padding:0 20px">
+      <div style="background:var(--bg2);border-radius:12px;padding:12px 16px;font-size:14px;color:var(--ink-body);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <span>You're offline. Showing what we saved at 07:42.</span>
+        <span style="color:var(--muted)">1 change waiting to sync</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <main style="flex:1;max-width:{{ mainWidth }};width:100%;margin:0 auto;padding:24px 20px 140px;display:flex;flex-direction:column;gap:24px;box-sizing:border-box">
+
+    <!-- today -->
+    <sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+      <section data-screen-label="Today" style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ todayHeadline }}</h1>
+          <p style="font-size:16px;color:var(--ink-body);text-wrap:pretty">{{ todayDate }}</p>
+        </div>
+        <div style="display:{{ arrangeBarDisplay }};align-items:center;gap:16px;flex-wrap:wrap;min-height:44px">
+          <button type="button" onClick="{{ toggleArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">{{ arrangeLabel }}</button>
+          <sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ resetArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">Reset</button></sc-if>
+          <sc-if value="{{ hasHiddenCards }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--muted)">Hidden</span><sc-for list="{{ hiddenCards }}" as="hc" hint-placeholder-count="0"><button type="button" onClick="{{ hc.show }}" style="background:none;border:1px dashed var(--dash);border-radius:6px;padding:8px 12px;font-size:14px;color:var(--ink-body);cursor:pointer;min-height:36px" style-hover="border-color:var(--ink);color:var(--ink)">Show {{ hc.title }}</button></sc-for></sc-if>
+        </div>
+        <div data-masonry data-mstyle="{{ mobileStyle }}" style="position:relative;height:{{ masonryHeight }};transition:height .25s cubic-bezier(.4,0,.2,1)">
+          <div data-card="needs" draggable="{{ arranging }}" onDragStart="{{ cards.needs.dragStart }}" onDragOver="{{ cards.needs.dragOver }}" onDrop="{{ cards.needs.drop }}" onDragEnd="{{ cards.needs.dragEnd }}" style="order:{{ cards.needs.order }};display:{{ cards.needs.display }};opacity:{{ cards.needs.opacity }};visibility:{{ cards.needs.visibility }};transition:{{ cards.needs.transition }};position:absolute;left:{{ cards.needs.left }};top:{{ cards.needs.top }};width:{{ cards.needs.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.needs.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.needs.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Needs you</h2><span style="display:{{ cards.needs.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.needs.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0"><button type="button" onClick="{{ cards.needs.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.needs.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.needs.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.needs.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.needs.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.needs.bodyDisplay }};flex-direction:column;gap:12px">
+            <sc-if value="{{ todayEmpty }}" hint-placeholder-val="{{ false }}"><p style="font-size:15px;color:var(--muted);border:1px dashed var(--dash);border-radius:12px;padding:14px 16px">Nothing needs you. When a retention falls due, a card expires or For drafts something, it shows here first.</p></sc-if><sc-if value="{{ todayHas }}" hint-placeholder-val="{{ true }}"><ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ todayItems }}" as="t" hint-placeholder-count="3"><li style="border-bottom:1px solid var(--dim)"><button type="button" onClick="{{ t.open }}" style="width:100%;text-align:left;background:none;border:none;padding:12px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink);text-wrap:pretty">{{ t.title }}</span><span style="font-size:13px;color:var(--muted);text-wrap:pretty">{{ t.meta }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ t.tone }}" hint-size="70px,26px">{{ t.word }}</x-import></button></li></sc-for></ul></sc-if>
+            </div>
+          </div>
+          <div data-card="money" draggable="{{ arranging }}" onDragStart="{{ cards.money.dragStart }}" onDragOver="{{ cards.money.dragOver }}" onDrop="{{ cards.money.drop }}" onDragEnd="{{ cards.money.dragEnd }}" style="order:{{ cards.money.order }};display:{{ cards.money.display }};opacity:{{ cards.money.opacity }};visibility:{{ cards.money.visibility }};transition:{{ cards.money.transition }};position:absolute;left:{{ cards.money.left }};top:{{ cards.money.top }};width:{{ cards.money.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.money.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.money.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Money</h2><span style="display:{{ cards.money.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.money.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0"><button type="button" onClick="{{ cards.money.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.money.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.money.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.money.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.money.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.money.bodyDisplay }};flex-direction:column;gap:12px">
+            <dl style="background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ todayMoney }}" as="row" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;border-bottom:1px solid var(--dim)"><dt style="font-size:13px;color:var(--muted)">{{ row.k }}</dt><dd style="font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ row.v }}</dd></div></sc-for></dl><div style="padding:0 16px"><button type="button" onClick="{{ goMoney }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">All retentions</button></div>
+            </div>
+          </div>
+          <div data-card="onsite" draggable="{{ arranging }}" onDragStart="{{ cards.onsite.dragStart }}" onDragOver="{{ cards.onsite.dragOver }}" onDrop="{{ cards.onsite.drop }}" onDragEnd="{{ cards.onsite.dragEnd }}" style="order:{{ cards.onsite.order }};display:{{ cards.onsite.display }};opacity:{{ cards.onsite.opacity }};visibility:{{ cards.onsite.visibility }};transition:{{ cards.onsite.transition }};position:absolute;left:{{ cards.onsite.left }};top:{{ cards.onsite.top }};width:{{ cards.onsite.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.onsite.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.onsite.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">On site this week</h2><span style="display:{{ cards.onsite.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.onsite.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0"><button type="button" onClick="{{ cards.onsite.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.onsite.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.onsite.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.onsite.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.onsite.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.onsite.bodyDisplay }};flex-direction:column;gap:12px">
+            <ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ todayOnsite }}" as="j" hint-placeholder-count="3"><li style="border-bottom:1px solid var(--dim)"><button type="button" onClick="{{ j.open }}" style="width:100%;text-align:left;background:none;border:none;padding:12px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink);text-wrap:pretty">{{ j.name }}</span><span style="font-size:13px;color:var(--muted);text-wrap:pretty">{{ j.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ j.tone }}" hint-size="70px,26px">{{ j.word }}</x-import></button></li></sc-for></ul><div style="padding:0 16px"><button type="button" onClick="{{ goProjects }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">All projects</button></div>
+            </div>
+          </div>
+          <div data-card="expiring" draggable="{{ arranging }}" onDragStart="{{ cards.expiring.dragStart }}" onDragOver="{{ cards.expiring.dragOver }}" onDrop="{{ cards.expiring.drop }}" onDragEnd="{{ cards.expiring.dragEnd }}" style="order:{{ cards.expiring.order }};display:{{ cards.expiring.display }};opacity:{{ cards.expiring.opacity }};visibility:{{ cards.expiring.visibility }};transition:{{ cards.expiring.transition }};position:absolute;left:{{ cards.expiring.left }};top:{{ cards.expiring.top }};width:{{ cards.expiring.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.expiring.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.expiring.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Running out soon</h2><span style="display:{{ cards.expiring.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.expiring.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0"><button type="button" onClick="{{ cards.expiring.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.expiring.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.expiring.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.expiring.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.expiring.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.expiring.bodyDisplay }};flex-direction:column;gap:12px">
+            <sc-if value="{{ todayHasExpiring }}" hint-placeholder-val="{{ true }}"><ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ todayExpiring }}" as="x" hint-placeholder-count="4"><li style="border-bottom:1px solid var(--dim)"><button type="button" onClick="{{ x.open }}" style="width:100%;text-align:left;background:none;border:none;padding:12px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink);text-wrap:pretty">{{ x.name }}</span><span style="font-size:13px;color:var(--muted);text-wrap:pretty">{{ x.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ x.tone }}" hint-size="70px,26px">{{ x.word }}</x-import></button></li></sc-for></ul></sc-if><sc-if value="{{ todayNoExpiring }}" hint-placeholder-val="{{ false }}"><p style="font-size:15px;color:var(--muted);border:1px dashed var(--dash);border-radius:12px;padding:14px 16px">Nothing runs out in the next 30 days.</p></sc-if>
+            </div>
+          </div>
+          <div data-card="activity" draggable="{{ arranging }}" onDragStart="{{ cards.activity.dragStart }}" onDragOver="{{ cards.activity.dragOver }}" onDrop="{{ cards.activity.drop }}" onDragEnd="{{ cards.activity.dragEnd }}" style="order:{{ cards.activity.order }};display:{{ cards.activity.display }};opacity:{{ cards.activity.opacity }};visibility:{{ cards.activity.visibility }};transition:{{ cards.activity.transition }};position:absolute;left:{{ cards.activity.left }};top:{{ cards.activity.top }};width:{{ cards.activity.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.activity.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.activity.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">What For did</h2><span style="display:{{ cards.activity.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.activity.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0"><button type="button" onClick="{{ cards.activity.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.activity.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.activity.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.activity.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.activity.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.activity.bodyDisplay }};flex-direction:column;gap:12px">
+            <ol style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ todayActivity }}" as="hh" hint-placeholder-count="4"><li style="padding:12px 16px;border-bottom:1px solid var(--dim);display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;color:var(--ink);line-height:1.4;text-wrap:pretty">{{ hh.what }}</span><span style="font-size:13px;color:var(--muted)">{{ hh.when }}</span></li></sc-for></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- jobs -->
+    <sc-if value="{{ isJobs }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Projects" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ jobsHeadline }}</h1>
+          <p style="font-size:16px;color:var(--ink-body);text-wrap:pretty">Tap a project for its progress, who's on it and what's held.</p>
+        </div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ projects }}" as="j" hint-placeholder-count="7">
+            <li><button type="button" onClick="{{ j.open }}"  style="width:100%;text-align:left;background:var(--bg2);border:none;border-radius:12px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:start;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><span style="font-size:16px;font-weight:500;line-height:1.3;color:var(--ink)">{{ j.name }}</span><span style="font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ j.progressText }}</span><span style="font-size:14px;color:var(--muted)">{{ j.contractor }} · {{ j.orderText }} order</span><span style="font-size:14px;color:var(--muted);text-align:right">{{ j.listMeta }}</span></button></li>
+          </sc-for>
+        </ul>
+      </section>
+    </sc-if>
+
+    <!-- money -->
+    <sc-if value="{{ isMoney }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Money" style="display:flex;flex-direction:column;gap:24px">
+        <span style="font-size:11px;font-weight:300;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Retentions</span>
+        <sc-if value="{{ listLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:16px" aria-busy="true">
+            <div style="height:56px;width:70%;border-radius:8px;background:var(--bg2)"></div>
+            <div style="height:88px;border-radius:12px;background:var(--bg2)"></div>
+            <div style="height:88px;border-radius:12px;background:var(--bg2)"></div>
+            <div style="height:88px;border-radius:12px;background:var(--bg2)"></div>
+            <p style="font-size:14px;color:var(--muted)">Checking your contracts.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ listEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">No retentions found yet.</h1>
+            <p style="font-size:16px;line-height:1.6;max-width:440px;text-wrap:pretty">Each job with money held will show here with the date it falls due. Send For a contract, an order or a payment certificate and it'll pick out the retention.</p>
+            <div style="border:1px dashed var(--dash);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+              <span style="font-size:14px;color:var(--muted)">Photo, PDF or a message to For</span>
+              <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="secondary" on-click="{{ resetState }}" hint-size="160px,44px">Add a contract</x-import>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ listError }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">We couldn't load your retentions.</h1>
+            <p style="font-size:16px;line-height:1.6;max-width:440px">Nothing has been lost. Try again, or come back in a minute.</p>
+            <div>
+              <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="primary" on-click="{{ resetState }}" hint-size="120px,44px">Try again</x-import>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ listPopulated }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ headline }}</h1>
+          <p style="font-size:16px;color:var(--ink-body);text-wrap:pretty">{{ subline }}</p>
+        </div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ items }}" as="r" hint-placeholder-count="4">
+            <li><button type="button" onClick="{{ r.open }}"  style="width:100%;text-align:left;background:var(--bg2);border:none;border-radius:12px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:start;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><span style="font-size:16px;font-weight:500;line-height:1.3;color:var(--ink)">{{ r.project }}</span><span style="font-size:20px;font-weight:300;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ r.amountText }}</span><span style="font-size:14px;color:var(--muted)">{{ r.contractor }} · {{ r.dueLabel }}</span><span style="display:flex;justify-content:flex-end"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ r.tone }}" hint-size="70px,26px">{{ r.statusWord }}</x-import></span></button></li>
+          </sc-for>
+        </ul>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <!-- operatives -->
+    <sc-if value="{{ isOperatives }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Operatives" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ opsHeadline }}</h1>
+          <p style="font-size:16px;color:var(--ink-body);text-wrap:pretty">Cards checked by For. We remind you 30 days before one runs out.</p>
+        </div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ operatives }}" as="o" hint-placeholder-count="4">
+            <li><button type="button" onClick="{{ o.open }}"  style="width:100%;text-align:left;background:var(--bg2);border:none;border-radius:12px;padding:18px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Avatar" name="{{ o.name }}" hint-size="40px,40px"></x-import><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:16px;font-weight:500;color:var(--ink)">{{ o.name }}</span><span style="font-size:14px;color:var(--muted)">{{ o.trade }} · {{ o.cards }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ o.tone }}" hint-size="70px,26px">{{ o.word }}</x-import></button></li>
+          </sc-for>
+        </ul>
+        <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <h2 style="font-size:20px;font-weight:500;color:var(--ink)">Waiting</h2>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ pending }}" as="p" hint-placeholder-count="2">
+            <li><button type="button" onClick="{{ p.open }}" disabled="{{ p.disabled }}" style="width:100%;text-align:left;background:var(--bg2);border:none;border-radius:12px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;align-items:center;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:16px;font-weight:500;color:var(--ink)">{{ p.name }}</span><span style="font-size:14px;color:var(--muted)">{{ p.meta }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ p.tone }}" hint-size="70px,26px">{{ p.word }}</x-import></button></li>
+          </sc-for>
+        </ul>
+          </div>
+        </sc-if>
+        <div style="border:1px dashed var(--dash);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+          <span style="font-size:16px;color:var(--ink-body);text-wrap:pretty">New starter? Send them a link by text. They photograph their cards, For reads them, you approve.</span>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="secondary" on-click="{{ startInvite }}" hint-size="160px,44px">Invite an operative</x-import>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- invite an operative -->
+    <sc-if value="{{ isInvite }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Invite operative" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Invite an operative</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">They get a one-use link by text. They photograph their cards, For reads them and fills the form. You check it and approve. Takes them about two minutes.</p>
+        </div>
+        <form style="display:flex;flex-direction:column;gap:16px" onSubmit="{{ sendInvite }}">
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="First name" placeholder="Tom" value="{{ inv.name }}" on-change="{{ onInvName }}" hint-size="100%,72px"></x-import>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Mobile" type="tel" placeholder="07700 900123" value="{{ inv.phone }}" on-change="{{ onInvPhone }}" hint="The link goes by text and lasts 7 days. They can come back to it until they submit; then it closes." hint-size="100%,96px"></x-import>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Starts on" placeholder="Monday 5 Oct" value="{{ inv.start }}" on-change="{{ onInvStart }}" hint="Optional. Their cards must be approved before this day." hint-size="100%,96px"></x-import>
+        </form>
+        <div style="background:var(--bg2);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:14px;color:var(--muted)">What they'll get</span>
+          <span style="font-size:16px;color:var(--ink);line-height:1.5;text-wrap:pretty">{{ inviteText }}</span>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- invite sent -->
+    <sc-if value="{{ isInvited }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Invite sent" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ invitedHeadline }}</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">They can open the link as often as they need. What they've filled in is kept, and the link closes once they submit. If nothing comes in after 2 days, For nudges them.</p>
+        </div>
+        <div style="background:var(--bg2);border-radius:12px;padding:16px 18px;display:flex;justify-content:space-between;gap:16px;align-items:center">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:16px;font-weight:500;color:var(--ink)">{{ inv.name }}</span>
+            <span style="font-size:14px;color:var(--muted)">{{ inv.phone }} · link open until {{ inviteExpiry }} or until they submit</span>
+          </div>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="info" hint-size="70px,26px">invited</x-import>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- approve an operative -->
+    <sc-if value="{{ isApprove }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Approve operative" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Check {{ cand.name }}'s cards</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">For read these from the photos. Change anything that's wrong, then approve. Nothing is added until you do.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">
+          <sc-for list="{{ cand.photos }}" as="ph" hint-placeholder-count="3">
+            <div style="aspect-ratio:3 / 2;border-radius:12px;background:var(--bg3);border:1px solid var(--line);display:flex;align-items:flex-end;padding:10px 12px">
+              <span style="font-size:13px;color:var(--ink-body)">{{ ph }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <h2 style="font-size:20px;font-weight:500;color:var(--ink)">Details <span style="font-size:14px;font-weight:400;color:var(--info-fg)">· filled by For</span></h2>
+          <form style="display:flex;flex-direction:column;gap:16px" onSubmit="{{ approve }}">
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Full name" default-value="{{ cand.fullName }}" hint-size="100%,72px"></x-import>
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Trade" default-value="{{ cand.trade }}" hint-size="100%,72px"></x-import>
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Mobile" default-value="{{ cand.phone }}" hint-size="100%,72px"></x-import>
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Emergency contact" default-value="{{ cand.emergency }}" hint-size="100%,72px"></x-import>
+          </form>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <h2 style="font-size:20px;font-weight:500;color:var(--ink)">Cards <span style="font-size:14px;font-weight:400;color:var(--info-fg)">· read by For</span></h2>
+          <ul style="list-style:none;background:var(--work);border:1px solid var(--dim);border-radius:12px;display:flex;flex-direction:column">
+            <sc-for list="{{ cand.cards }}" as="c" hint-placeholder-count="2">
+              <li style="display:flex;justify-content:space-between;gap:16px;padding:14px 18px;border-bottom:1px solid var(--dim);align-items:center">
+                <span style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                  <span style="font-size:16px;color:var(--ink)">{{ c.name }}</span>
+                  <span style="font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums">{{ c.detail }}</span>
+                </span>
+                <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ c.tone }}" hint-size="70px,26px">{{ c.word }}</x-import>
+              </li>
+            </sc-for>
+          </ul>
+          <p style="font-size:14px;color:var(--muted);text-wrap:pretty">{{ cand.note }}</p>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- approved -->
+    <sc-if value="{{ isApproved }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Operative approved" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ cand.fullName }} is on the books.</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">We've texted them. Their cards are in operatives, and For will remind you 30 days before any of them run out.</p>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- equipment -->
+    <sc-if value="{{ isEquipment }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Equipment" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ equipHeadline }}</h1>
+          <p style="font-size:16px;color:var(--ink-body);text-wrap:pretty">Inspections and certificates. We remind you 30 days before one runs out.</p>
+        </div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ equipment }}" as="e" hint-placeholder-count="5">
+            <li><button type="button" onClick="{{ e.open }}"  style="width:100%;text-align:left;background:var(--bg2);border:none;border-radius:12px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;align-items:center;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:16px;font-weight:500;color:var(--ink)">{{ e.name }}</span><span style="font-size:14px;color:var(--muted)">{{ e.meta }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ e.tone }}" hint-size="70px,26px">{{ e.word }}</x-import><span style="font-size:14px;color:var(--muted);grid-column:1 / -1">{{ e.check }}</span></button></li>
+          </sc-for>
+        </ul>
+        <div style="border:1px dashed var(--dash);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+          <span style="font-size:16px;color:var(--ink-body);text-wrap:pretty">New plant or hire? Photograph the plate or the hire note and For adds it with its inspection dates.</span>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="secondary" hint-size="140px,44px">Add equipment</x-import>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- equipment unit -->
+    <sc-if value="{{ isUnit }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Equipment unit" style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ unit.name }}</h1><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ unit.tone }}" hint-size="70px,26px">{{ unit.word }}</x-import></div>
+          <p style="font-size:16px;line-height:1.6;color:var(--ink-body);text-wrap:pretty">{{ unit.check }}</p>
+        </div>
+        <div style="display:{{ arrangeBarDisplay }};align-items:center;gap:16px;flex-wrap:wrap;min-height:44px">
+          <button type="button" onClick="{{ toggleArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">{{ arrangeLabel }}</button>
+          <sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ resetArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">Reset</button></sc-if>
+          <sc-if value="{{ hasHiddenCards }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--muted)">Hidden</span><sc-for list="{{ hiddenCards }}" as="hc" hint-placeholder-count="0"><button type="button" onClick="{{ hc.show }}" style="background:none;border:1px dashed var(--dash);border-radius:6px;padding:8px 12px;font-size:14px;color:var(--ink-body);cursor:pointer;min-height:36px" style-hover="border-color:var(--ink);color:var(--ink)">Show {{ hc.title }}</button></sc-for></sc-if>
+        </div>
+        <div data-masonry data-mstyle="{{ mobileStyle }}" style="position:relative;height:{{ masonryHeight }};transition:height .25s cubic-bezier(.4,0,.2,1)">
+          <div data-card="certs" draggable="{{ arranging }}" onDragStart="{{ cards.certs.dragStart }}" onDragOver="{{ cards.certs.dragOver }}" onDrop="{{ cards.certs.drop }}" onDragEnd="{{ cards.certs.dragEnd }}" style="order:{{ cards.certs.order }};display:{{ cards.certs.display }};opacity:{{ cards.certs.opacity }};visibility:{{ cards.certs.visibility }};transition:{{ cards.certs.transition }};position:absolute;left:{{ cards.certs.left }};top:{{ cards.certs.top }};width:{{ cards.certs.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.certs.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.certs.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Certificates and checks</h2><span style="display:{{ cards.certs.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.certs.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.certs.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.certs.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.certs.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.certs.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.certs.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.certs.bodyDisplay }};flex-direction:column;gap:12px">
+            <ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ unit.certs }}" as="c" hint-placeholder-count="3"><li style="display:flex;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--dim);align-items:center"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ c.name }}</span><span style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ c.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ c.tone }}" hint-size="70px,26px">{{ c.word }}</x-import></li></sc-for></ul>
+            </div>
+          </div>
+          <div data-card="details" draggable="{{ arranging }}" onDragStart="{{ cards.details.dragStart }}" onDragOver="{{ cards.details.dragOver }}" onDrop="{{ cards.details.drop }}" onDragEnd="{{ cards.details.dragEnd }}" style="order:{{ cards.details.order }};display:{{ cards.details.display }};opacity:{{ cards.details.opacity }};visibility:{{ cards.details.visibility }};transition:{{ cards.details.transition }};position:absolute;left:{{ cards.details.left }};top:{{ cards.details.top }};width:{{ cards.details.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.details.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.details.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Details</h2><span style="display:{{ cards.details.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.details.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.details.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.details.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.details.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.details.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.details.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.details.bodyDisplay }};flex-direction:column;gap:12px">
+            <dl style="background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ unit.rows }}" as="row" hint-placeholder-count="5"><div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;border-bottom:1px solid var(--dim)"><dt style="font-size:13px;color:var(--muted)">{{ row.k }}</dt><dd style="font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ row.v }}</dd></div></sc-for></dl>
+            </div>
+          </div>
+          <div data-card="history" draggable="{{ arranging }}" onDragStart="{{ cards.history.dragStart }}" onDragOver="{{ cards.history.dragOver }}" onDrop="{{ cards.history.drop }}" onDragEnd="{{ cards.history.dragEnd }}" style="order:{{ cards.history.order }};display:{{ cards.history.display }};opacity:{{ cards.history.opacity }};visibility:{{ cards.history.visibility }};transition:{{ cards.history.transition }};position:absolute;left:{{ cards.history.left }};top:{{ cards.history.top }};width:{{ cards.history.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.history.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.history.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Recent checks</h2><span style="display:{{ cards.history.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.history.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.history.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.history.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.history.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.history.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.history.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.history.bodyDisplay }};flex-direction:column;gap:12px">
+            <ol style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ unit.history }}" as="hh" hint-placeholder-count="3"><li style="padding:12px 16px;border-bottom:1px solid var(--dim);display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;color:var(--ink);line-height:1.4">{{ hh.what }}</span><span style="font-size:13px;color:var(--muted)">{{ hh.when }}</span></li></sc-for></ol>
+            </div>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- operative profile -->
+    <sc-if value="{{ isOperative }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Operative profile" style="display:flex;flex-direction:column;gap:20px">
+        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Portrait" name="{{ op.name }}" width="{{ portraitWidth }}" hint-size="120px,160px"></x-import>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px 12px 12px 0;min-width:0">
+            <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ op.name }}</h1>
+            <p style="font-size:16px;color:var(--ink-body)">{{ op.trade }}</p>
+            <p style="font-size:14px;color:var(--muted)">{{ op.job }}</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ op.tone }}" hint-size="70px,26px">{{ op.word }}</x-import></div>
+          </div>
+        </div>
+        <div style="display:{{ arrangeBarDisplay }};align-items:center;gap:16px;flex-wrap:wrap;min-height:44px">
+          <button type="button" onClick="{{ toggleArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">{{ arrangeLabel }}</button>
+          <sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ resetArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">Reset</button></sc-if>
+          <sc-if value="{{ hasHiddenCards }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--muted)">Hidden</span><sc-for list="{{ hiddenCards }}" as="hc" hint-placeholder-count="0"><button type="button" onClick="{{ hc.show }}" style="background:none;border:1px dashed var(--dash);border-radius:6px;padding:8px 12px;font-size:14px;color:var(--ink-body);cursor:pointer;min-height:36px" style-hover="border-color:var(--ink);color:var(--ink)">Show {{ hc.title }}</button></sc-for></sc-if>
+        </div>
+        <div data-masonry data-mstyle="{{ mobileStyle }}" style="position:relative;height:{{ masonryHeight }};transition:height .25s cubic-bezier(.4,0,.2,1)">
+          <div data-card="cards" draggable="{{ arranging }}" onDragStart="{{ cards.cards.dragStart }}" onDragOver="{{ cards.cards.dragOver }}" onDrop="{{ cards.cards.drop }}" onDragEnd="{{ cards.cards.dragEnd }}" style="order:{{ cards.cards.order }};display:{{ cards.cards.display }};opacity:{{ cards.cards.opacity }};visibility:{{ cards.cards.visibility }};transition:{{ cards.cards.transition }};position:absolute;left:{{ cards.cards.left }};top:{{ cards.cards.top }};width:{{ cards.cards.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.cards.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.cards.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Cards</h2><span style="display:{{ cards.cards.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.cards.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.cards.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.cards.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.cards.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.cards.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.cards.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.cards.bodyDisplay }};flex-direction:column;gap:12px">
+            <ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ op.cardList }}" as="c" hint-placeholder-count="2"><li style="display:flex;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--dim);align-items:center"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ c.name }}</span><span style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ c.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ c.tone }}" hint-size="70px,26px">{{ c.word }}</x-import></li></sc-for></ul><p style="font-size:13px;color:var(--muted);padding:0 16px">Read from photos by For, checked by you on {{ op.approved }}.</p>
+            </div>
+          </div>
+          <div data-card="training" draggable="{{ arranging }}" onDragStart="{{ cards.training.dragStart }}" onDragOver="{{ cards.training.dragOver }}" onDrop="{{ cards.training.drop }}" onDragEnd="{{ cards.training.dragEnd }}" style="order:{{ cards.training.order }};display:{{ cards.training.display }};opacity:{{ cards.training.opacity }};visibility:{{ cards.training.visibility }};transition:{{ cards.training.transition }};position:absolute;left:{{ cards.training.left }};top:{{ cards.training.top }};width:{{ cards.training.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.training.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.training.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Training</h2><span style="display:{{ cards.training.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.training.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.training.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.training.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.training.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.training.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.training.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.training.bodyDisplay }};flex-direction:column;gap:12px">
+            <sc-if value="{{ op.hasTraining }}" hint-placeholder-val="{{ true }}"><ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ op.training }}" as="t" hint-placeholder-count="3"><li style="display:flex;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--dim);align-items:center"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ t.name }}</span><span style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ t.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ t.tone }}" hint-size="70px,26px">{{ t.word }}</x-import></li></sc-for></ul></sc-if><sc-if value="{{ op.noTraining }}" hint-placeholder-val="{{ false }}"><p style="font-size:15px;color:var(--muted);border:1px dashed var(--dash);border-radius:12px;padding:14px 16px">No training on record yet. Toolbox talks and briefings they sign will show here.</p></sc-if><div style="padding:0 16px 8px"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="secondary"  hint-size="140px,44px">Add training</x-import></div>
+            </div>
+          </div>
+          <div data-card="details" draggable="{{ arranging }}" onDragStart="{{ cards.details.dragStart }}" onDragOver="{{ cards.details.dragOver }}" onDrop="{{ cards.details.drop }}" onDragEnd="{{ cards.details.dragEnd }}" style="order:{{ cards.details.order }};display:{{ cards.details.display }};opacity:{{ cards.details.opacity }};visibility:{{ cards.details.visibility }};transition:{{ cards.details.transition }};position:absolute;left:{{ cards.details.left }};top:{{ cards.details.top }};width:{{ cards.details.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.details.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.details.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Details</h2><span style="display:{{ cards.details.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.details.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.details.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.details.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.details.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.details.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.details.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.details.bodyDisplay }};flex-direction:column;gap:12px">
+            <dl style="background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ op.rows }}" as="row" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;border-bottom:1px solid var(--dim)"><dt style="font-size:13px;color:var(--muted)">{{ row.k }}</dt><dd style="font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ row.v }}</dd></div></sc-for></dl>
+            </div>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- company -->
+    <sc-if value="{{ isCompany }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Company" style="display:flex;flex-direction:column;gap:20px">
+        <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">Harlow Groundworks Ltd</h1>
+        <div style="display:{{ arrangeBarDisplay }};align-items:center;gap:16px;flex-wrap:wrap;min-height:44px">
+          <button type="button" onClick="{{ toggleArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">{{ arrangeLabel }}</button>
+          <sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ resetArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">Reset</button></sc-if>
+          <sc-if value="{{ hasHiddenCards }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--muted)">Hidden</span><sc-for list="{{ hiddenCards }}" as="hc" hint-placeholder-count="0"><button type="button" onClick="{{ hc.show }}" style="background:none;border:1px dashed var(--dash);border-radius:6px;padding:8px 12px;font-size:14px;color:var(--ink-body);cursor:pointer;min-height:36px" style-hover="border-color:var(--ink);color:var(--ink)">Show {{ hc.title }}</button></sc-for></sc-if>
+        </div>
+        <div data-masonry data-mstyle="{{ mobileStyle }}" style="position:relative;height:{{ masonryHeight }};transition:height .25s cubic-bezier(.4,0,.2,1)">
+          <div data-card="mailbox" draggable="{{ arranging }}" onDragStart="{{ cards.mailbox.dragStart }}" onDragOver="{{ cards.mailbox.dragOver }}" onDrop="{{ cards.mailbox.drop }}" onDragEnd="{{ cards.mailbox.dragEnd }}" style="order:{{ cards.mailbox.order }};display:{{ cards.mailbox.display }};opacity:{{ cards.mailbox.opacity }};visibility:{{ cards.mailbox.visibility }};transition:{{ cards.mailbox.transition }};position:absolute;left:{{ cards.mailbox.left }};top:{{ cards.mailbox.top }};width:{{ cards.mailbox.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.mailbox.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.mailbox.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Mailbox</h2><span style="display:{{ cards.mailbox.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.mailbox.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.mailbox.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.mailbox.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.mailbox.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.mailbox.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.mailbox.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.mailbox.bodyDisplay }};flex-direction:column;gap:12px">
+            <p style="font-size:15px;line-height:1.6;color:var(--ink-body);text-wrap:pretty;padding:0 16px">Claims, chasers and reminders go from here, in your name. Nothing is sent from formattion's address.</p><div style="background:var(--work);border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink);word-break:break-all">{{ mailboxAddress }}</span><span style="font-size:13px;color:var(--muted)">{{ mailboxMeta }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ mailboxTone }}" hint-size="90px,26px">{{ mailboxWord }}</x-import></div><sc-if value="{{ mailboxMissing }}" hint-placeholder-val="{{ false }}"><div style="padding:0 16px 8px"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="primary" on-click="{{ connectMailbox }}" hint-size="160px,44px">Connect mailbox</x-import></div></sc-if>
+            </div>
+          </div>
+          <div data-card="people" draggable="{{ arranging }}" onDragStart="{{ cards.people.dragStart }}" onDragOver="{{ cards.people.dragOver }}" onDrop="{{ cards.people.drop }}" onDragEnd="{{ cards.people.dragEnd }}" style="order:{{ cards.people.order }};display:{{ cards.people.display }};opacity:{{ cards.people.opacity }};visibility:{{ cards.people.visibility }};transition:{{ cards.people.transition }};position:absolute;left:{{ cards.people.left }};top:{{ cards.people.top }};width:{{ cards.people.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.people.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.people.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">People</h2><span style="display:{{ cards.people.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.people.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.people.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.people.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.people.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.people.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.people.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.people.bodyDisplay }};flex-direction:column;gap:12px">
+            <ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ people }}" as="p" hint-placeholder-count="3"><li style="display:flex;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--dim);align-items:center"><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;color:var(--ink)">{{ p.name }}</span><span style="font-size:13px;color:var(--muted)">{{ p.email }}</span></span><span style="font-size:14px;font-weight:500;color:var(--ink)">{{ p.role }}</span></li></sc-for></ul><div style="padding:0 16px 8px"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="secondary"  hint-size="120px,44px">Add a person</x-import></div>
+            </div>
+          </div>
+          <div data-card="details" draggable="{{ arranging }}" onDragStart="{{ cards.details.dragStart }}" onDragOver="{{ cards.details.dragOver }}" onDrop="{{ cards.details.drop }}" onDragEnd="{{ cards.details.dragEnd }}" style="order:{{ cards.details.order }};display:{{ cards.details.display }};opacity:{{ cards.details.opacity }};visibility:{{ cards.details.visibility }};transition:{{ cards.details.transition }};position:absolute;left:{{ cards.details.left }};top:{{ cards.details.top }};width:{{ cards.details.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.details.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.details.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Details</h2><span style="display:{{ cards.details.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.details.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.details.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.details.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.details.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.details.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.details.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.details.bodyDisplay }};flex-direction:column;gap:12px">
+            <dl style="background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ companyRows }}" as="row" hint-placeholder-count="4"><div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;border-bottom:1px solid var(--dim)"><dt style="font-size:13px;color:var(--muted)">{{ row.k }}</dt><dd style="font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ row.v }}</dd></div></sc-for></dl>
+            </div>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- project -->
+    <sc-if value="{{ isProject }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Project" style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;align-items:stretch">
+          <div style="display:flex;flex-direction:column;gap:10px;justify-content:center;min-width:0">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ pj.name }}</h1><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ pj.tone }}" hint-size="70px,26px">{{ pj.word }}</x-import></div>
+            <p style="font-size:15px;line-height:1.6;color:var(--ink-body);text-wrap:pretty;padding:0 16px">{{ pj.summary }}</p>
+          </div>
+          <div data-stats style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatCard" label="Progress" value="{{ pj.progressText }}" hint-size="100%,88px"></x-import>
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatCard" label="{{ pj.finishLabel }}" value="{{ pj.finishShort }}" hint-size="100%,88px"></x-import>
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatCard" label="Order" value="{{ pj.orderText }}" hint-size="100%,88px"></x-import>
+          </div>
+        </div>
+        <div style="display:{{ arrangeBarDisplay }};align-items:center;gap:16px;flex-wrap:wrap;min-height:44px">
+          <button type="button" onClick="{{ toggleArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">{{ arrangeLabel }}</button>
+          <sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ resetArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">Reset</button></sc-if>
+          <sc-if value="{{ hasHiddenCards }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--muted)">Hidden</span><sc-for list="{{ hiddenCards }}" as="hc" hint-placeholder-count="0"><button type="button" onClick="{{ hc.show }}" style="background:none;border:1px dashed var(--dash);border-radius:6px;padding:8px 12px;font-size:14px;color:var(--ink-body);cursor:pointer;min-height:36px" style-hover="border-color:var(--ink);color:var(--ink)">Show {{ hc.title }}</button></sc-for></sc-if>
+        </div>
+        <div data-masonry data-mstyle="{{ mobileStyle }}" style="position:relative;height:{{ masonryHeight }};transition:height .25s cubic-bezier(.4,0,.2,1)">
+          <div data-card="works" draggable="{{ arranging }}" onDragStart="{{ cards.works.dragStart }}" onDragOver="{{ cards.works.dragOver }}" onDrop="{{ cards.works.drop }}" onDragEnd="{{ cards.works.dragEnd }}" style="order:{{ cards.works.order }};display:{{ cards.works.display }};opacity:{{ cards.works.opacity }};visibility:{{ cards.works.visibility }};transition:{{ cards.works.transition }};position:absolute;left:{{ cards.works.left }};top:{{ cards.works.top }};width:{{ cards.works.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.works.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.works.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Works</h2><span style="display:{{ cards.works.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.works.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.works.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.works.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.works.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.works.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.works.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.works.bodyDisplay }};flex-direction:column;gap:12px">
+            <div role="progressbar" aria-valuenow="{{ pj.progress }}" aria-valuemin="0" aria-valuemax="100" style="height:8px;border-radius:999px;background:var(--bg3);overflow:hidden;margin:0 16px"><div style="height:100%;width:{{ pj.progressWidth }};background:var(--ink);border-radius:999px;transition:width .3s cubic-bezier(.4,0,.2,1)"></div></div><ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ pj.works }}" as="w" hint-placeholder-count="4"><li style="display:flex;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--dim);align-items:center"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ w.name }}</span><span style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ w.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ w.tone }}" hint-size="70px,26px">{{ w.word }}</x-import></li></sc-for></ul><p style="font-size:13px;color:var(--muted);text-wrap:pretty;padding:0 16px">{{ pj.progressNote }}</p>
+            </div>
+          </div>
+          <div data-card="onsite" draggable="{{ arranging }}" onDragStart="{{ cards.onsite.dragStart }}" onDragOver="{{ cards.onsite.dragOver }}" onDrop="{{ cards.onsite.drop }}" onDragEnd="{{ cards.onsite.dragEnd }}" style="order:{{ cards.onsite.order }};display:{{ cards.onsite.display }};opacity:{{ cards.onsite.opacity }};visibility:{{ cards.onsite.visibility }};transition:{{ cards.onsite.transition }};position:absolute;left:{{ cards.onsite.left }};top:{{ cards.onsite.top }};width:{{ cards.onsite.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.onsite.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.onsite.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">On site</h2><span style="display:{{ cards.onsite.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.onsite.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.onsite.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.onsite.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.onsite.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.onsite.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.onsite.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.onsite.bodyDisplay }};flex-direction:column;gap:12px">
+            <sc-if value="{{ pj.hasOps }}" hint-placeholder-val="{{ true }}"><ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ pj.ops }}" as="o" hint-placeholder-count="2"><li style="border-bottom:1px solid var(--dim)"><button type="button" onClick="{{ o.open }}" style="width:100%;text-align:left;background:none;border:none;padding:12px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ o.name }}</span><span style="font-size:13px;color:var(--muted)">{{ o.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ o.tone }}" hint-size="70px,26px">{{ o.word }}</x-import></button></li></sc-for></ul></sc-if><sc-if value="{{ pj.noOps }}" hint-placeholder-val="{{ false }}"><p style="font-size:15px;color:var(--muted);border:1px dashed var(--dash);border-radius:12px;padding:14px 16px">Nobody on site this week.</p></sc-if><sc-if value="{{ pj.hasKit }}" hint-placeholder-val="{{ true }}"><ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ pj.kit }}" as="k" hint-placeholder-count="1"><li style="border-bottom:1px solid var(--dim)"><button type="button" onClick="{{ k.open }}" style="width:100%;text-align:left;background:none;border:none;padding:12px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ k.name }}</span><span style="font-size:13px;color:var(--muted)">{{ k.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ k.tone }}" hint-size="70px,26px">{{ k.word }}</x-import></button></li></sc-for></ul></sc-if><sc-if value="{{ pj.noKit }}" hint-placeholder-val="{{ false }}"><p style="font-size:15px;color:var(--muted);border:1px dashed var(--dash);border-radius:12px;padding:14px 16px">No plant on site.</p></sc-if>
+            </div>
+          </div>
+          <div data-card="dates" draggable="{{ arranging }}" onDragStart="{{ cards.dates.dragStart }}" onDragOver="{{ cards.dates.dragOver }}" onDrop="{{ cards.dates.drop }}" onDragEnd="{{ cards.dates.dragEnd }}" style="order:{{ cards.dates.order }};display:{{ cards.dates.display }};opacity:{{ cards.dates.opacity }};visibility:{{ cards.dates.visibility }};transition:{{ cards.dates.transition }};position:absolute;left:{{ cards.dates.left }};top:{{ cards.dates.top }};width:{{ cards.dates.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.dates.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.dates.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Dates</h2><span style="display:{{ cards.dates.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.dates.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.dates.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.dates.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.dates.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.dates.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.dates.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.dates.bodyDisplay }};flex-direction:column;gap:12px">
+            <dl style="background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ pj.dates }}" as="row" hint-placeholder-count="5"><div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;border-bottom:1px solid var(--dim)"><dt style="font-size:13px;color:var(--muted)">{{ row.k }}</dt><dd style="font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ row.v }}</dd></div></sc-for></dl>
+            </div>
+          </div>
+          <div data-card="retention" draggable="{{ arranging }}" onDragStart="{{ cards.retention.dragStart }}" onDragOver="{{ cards.retention.dragOver }}" onDrop="{{ cards.retention.drop }}" onDragEnd="{{ cards.retention.dragEnd }}" style="order:{{ cards.retention.order }};display:{{ cards.retention.display }};opacity:{{ cards.retention.opacity }};visibility:{{ cards.retention.visibility }};transition:{{ cards.retention.transition }};position:absolute;left:{{ cards.retention.left }};top:{{ cards.retention.top }};width:{{ cards.retention.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.retention.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.retention.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Retention</h2><span style="display:{{ cards.retention.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.retention.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.retention.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.retention.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.retention.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.retention.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.retention.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.retention.bodyDisplay }};flex-direction:column;gap:12px">
+            <sc-if value="{{ pj.hasRetention }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ pj.openRetention }}" style="width:100%;text-align:left;background:var(--work);border:none;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;color:var(--ink)" style-hover="background:var(--bg3)"><span style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:20px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums">{{ pj.retAmount }}</span><span style="font-size:13px;color:var(--muted)">{{ pj.retMeta }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ pj.retTone }}" hint-size="70px,26px">{{ pj.retWord }}</x-import></button></sc-if><sc-if value="{{ pj.noRetention }}" hint-placeholder-val="{{ false }}"><p style="font-size:15px;color:var(--muted);border:1px dashed var(--dash);border-radius:12px;padding:14px 16px">{{ pj.retNote }}</p></sc-if><h2 style="font-size:20px;font-weight:500;color:var(--ink);padding:8px 16px 0">Details</h2><dl style="background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ pj.rows }}" as="row" hint-placeholder-count="5"><div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;border-bottom:1px solid var(--dim)"><dt style="font-size:13px;color:var(--muted)">{{ row.k }}</dt><dd style="font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ row.v }}</dd></div></sc-for></dl>
+            </div>
+          </div>
+          <div data-card="hs" draggable="{{ arranging }}" onDragStart="{{ cards.hs.dragStart }}" onDragOver="{{ cards.hs.dragOver }}" onDrop="{{ cards.hs.drop }}" onDragEnd="{{ cards.hs.dragEnd }}" style="order:{{ cards.hs.order }};display:{{ cards.hs.display }};opacity:{{ cards.hs.opacity }};visibility:{{ cards.hs.visibility }};transition:{{ cards.hs.transition }};position:absolute;left:{{ cards.hs.left }};top:{{ cards.hs.top }};width:{{ cards.hs.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.hs.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.hs.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Health and safety pack</h2><span style="display:{{ cards.hs.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.hs.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.hs.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.hs.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.hs.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.hs.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.hs.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.hs.bodyDisplay }};flex-direction:column;gap:12px">
+            <ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ pj.hs }}" as="d" hint-placeholder-count="5"><li style="display:flex;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--dim);align-items:center"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ d.name }}</span><span style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ d.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ d.tone }}" hint-size="70px,26px">{{ d.word }}</x-import></li></sc-for></ul><div style="padding:0 16px 8px"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="secondary"  hint-size="150px,44px">Add a document</x-import></div>
+            </div>
+          </div>
+          <div data-card="tbt" draggable="{{ arranging }}" onDragStart="{{ cards.tbt.dragStart }}" onDragOver="{{ cards.tbt.dragOver }}" onDrop="{{ cards.tbt.drop }}" onDragEnd="{{ cards.tbt.dragEnd }}" style="order:{{ cards.tbt.order }};display:{{ cards.tbt.display }};opacity:{{ cards.tbt.opacity }};visibility:{{ cards.tbt.visibility }};transition:{{ cards.tbt.transition }};position:absolute;left:{{ cards.tbt.left }};top:{{ cards.tbt.top }};width:{{ cards.tbt.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.tbt.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.tbt.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Toolbox talks</h2><span style="display:{{ cards.tbt.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.tbt.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.tbt.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.tbt.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.tbt.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.tbt.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.tbt.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.tbt.bodyDisplay }};flex-direction:column;gap:12px">
+            <sc-if value="{{ pj.hasTbts }}" hint-placeholder-val="{{ true }}"><ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ pj.tbts }}" as="t" hint-placeholder-count="3"><li style="display:flex;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--dim);align-items:center"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ t.name }}</span><span style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ t.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ t.tone }}" hint-size="70px,26px">{{ t.word }}</x-import></li></sc-for></ul></sc-if><sc-if value="{{ pj.noTbts }}" hint-placeholder-val="{{ false }}"><p style="font-size:15px;color:var(--muted);border:1px dashed var(--dash);border-radius:12px;padding:14px 16px">No talks recorded on this job yet.</p></sc-if><div style="padding:0 16px 8px"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="secondary"  hint-size="130px,44px">Record a talk</x-import></div>
+            </div>
+          </div>
+          <div data-card="incidents" draggable="{{ arranging }}" onDragStart="{{ cards.incidents.dragStart }}" onDragOver="{{ cards.incidents.dragOver }}" onDrop="{{ cards.incidents.drop }}" onDragEnd="{{ cards.incidents.dragEnd }}" style="order:{{ cards.incidents.order }};display:{{ cards.incidents.display }};opacity:{{ cards.incidents.opacity }};visibility:{{ cards.incidents.visibility }};transition:{{ cards.incidents.transition }};position:absolute;left:{{ cards.incidents.left }};top:{{ cards.incidents.top }};width:{{ cards.incidents.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.incidents.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.incidents.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Incidents</h2><span style="display:{{ cards.incidents.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.incidents.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.incidents.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.incidents.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.incidents.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.incidents.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.incidents.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.incidents.bodyDisplay }};flex-direction:column;gap:12px">
+            <sc-if value="{{ pj.hasIncidents }}" hint-placeholder-val="{{ false }}"><ul style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ pj.incidents }}" as="i" hint-placeholder-count="1"><li style="display:flex;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--dim);align-items:center"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ i.name }}</span><span style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-wrap:pretty">{{ i.detail }}</span></span><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ i.tone }}" hint-size="70px,26px">{{ i.word }}</x-import></li></sc-for></ul></sc-if><sc-if value="{{ pj.noIncidents }}" hint-placeholder-val="{{ true }}"><p style="font-size:15px;color:var(--muted);border:1px dashed var(--dash);border-radius:12px;padding:14px 16px">No incidents or near misses reported.</p></sc-if><div style="padding:0 16px 8px"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="secondary"  hint-size="160px,44px">Report an incident</x-import></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- retention detail -->
+    <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Retention detail" style="display:flex;flex-direction:column;gap:20px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;align-items:stretch">
+          <div style="display:flex;flex-direction:column;gap:10px;justify-content:center;min-width:0">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ sel.project }}</h1><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ sel.tone }}" hint-size="70px,26px">{{ sel.statusWord }}</x-import></div>
+            <p style="font-size:15px;line-height:1.6;color:var(--ink-body);text-wrap:pretty;padding:0 16px">{{ sel.summary }}</p>
+          </div>
+          <div data-stats style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatCard" label="Held" value="{{ sel.amountText }}" hint-size="100%,88px"></x-import>
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatCard" label="{{ sel.dueStatLabel }}" value="{{ sel.dueShort }}" hint-size="100%,88px"></x-import>
+          </div>
+        </div>
+        <div style="display:{{ arrangeBarDisplay }};align-items:center;gap:16px;flex-wrap:wrap;min-height:44px">
+          <button type="button" onClick="{{ toggleArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">{{ arrangeLabel }}</button>
+          <sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ resetArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">Reset</button></sc-if>
+          <sc-if value="{{ hasHiddenCards }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:var(--muted)">Hidden</span><sc-for list="{{ hiddenCards }}" as="hc" hint-placeholder-count="0"><button type="button" onClick="{{ hc.show }}" style="background:none;border:1px dashed var(--dash);border-radius:6px;padding:8px 12px;font-size:14px;color:var(--ink-body);cursor:pointer;min-height:36px" style-hover="border-color:var(--ink);color:var(--ink)">Show {{ hc.title }}</button></sc-for></sc-if>
+        </div>
+        <div data-masonry data-mstyle="{{ mobileStyle }}" style="position:relative;height:{{ masonryHeight }};transition:height .25s cubic-bezier(.4,0,.2,1)">
+          <div data-card="contract" draggable="{{ arranging }}" onDragStart="{{ cards.contract.dragStart }}" onDragOver="{{ cards.contract.dragOver }}" onDrop="{{ cards.contract.drop }}" onDragEnd="{{ cards.contract.dragEnd }}" style="order:{{ cards.contract.order }};display:{{ cards.contract.display }};opacity:{{ cards.contract.opacity }};visibility:{{ cards.contract.visibility }};transition:{{ cards.contract.transition }};position:absolute;left:{{ cards.contract.left }};top:{{ cards.contract.top }};width:{{ cards.contract.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.contract.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.contract.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">Project</h2><span style="display:{{ cards.contract.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.contract.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.contract.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.contract.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.contract.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.contract.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.contract.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.contract.bodyDisplay }};flex-direction:column;gap:12px">
+            <dl style="background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ sel.contract }}" as="row" hint-placeholder-count="6"><div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;border-bottom:1px solid var(--dim)"><dt style="font-size:13px;color:var(--muted)">{{ row.k }}</dt><dd style="font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ row.v }}</dd></div></sc-for></dl>
+            </div>
+          </div>
+          <div data-card="history" draggable="{{ arranging }}" onDragStart="{{ cards.history.dragStart }}" onDragOver="{{ cards.history.dragOver }}" onDrop="{{ cards.history.drop }}" onDragEnd="{{ cards.history.dragEnd }}" style="order:{{ cards.history.order }};display:{{ cards.history.display }};opacity:{{ cards.history.opacity }};visibility:{{ cards.history.visibility }};transition:{{ cards.history.transition }};position:absolute;left:{{ cards.history.left }};top:{{ cards.history.top }};width:{{ cards.history.width }};box-sizing:border-box;background:var(--bg2);border-radius:20px;padding:8px;gap:12px;flex-direction:column;min-width:0;outline:{{ cards.history.outline }};outline-offset:-1px;cursor:{{ arrangeCursor }}" data-mcard="{{ mobileStyle }}">
+            <div onClick="{{ cards.history.toggle }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;cursor:{{ collapseCursor }};padding:10px 4px 2px 16px"><div style="display:flex;flex-direction:column;gap:4px;min-width:0"><h2 style="font-size:20px;font-weight:500;color:var(--ink)">What For has sent</h2><span style="display:{{ cards.history.summaryDisplay }};font-size:14px;color:var(--muted);text-wrap:pretty">{{ cards.history.summary }}</span></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0;"><button type="button" onClick="{{ cards.history.up }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Earlier</button><button type="button" onClick="{{ cards.history.down }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px" style-hover="color:var(--ink)">Later</button><button type="button" onClick="{{ cards.history.hide }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;min-width:44px;display:{{ cards.history.hideDisplay }}" style-hover="color:var(--ink)">Hide</button></div></sc-if><span aria-hidden="true" style="display:{{ collapseIconDisplay }};width:40px;height:40px;align-items:center;justify-content:center;color:var(--ink);transition:transform .35s cubic-bezier(.4,0,.2,1);transform:{{ cards.history.iconRotate }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></div></div>
+            <div style="display:{{ cards.history.bodyDisplay }};flex-direction:column;gap:12px">
+            <sc-if value="{{ sel.hasHistory }}" hint-placeholder-val="{{ true }}"><ol style="list-style:none;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden"><sc-for list="{{ sel.history }}" as="hh" hint-placeholder-count="3"><li style="padding:12px 16px;border-bottom:1px solid var(--dim);display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;color:var(--ink);line-height:1.4">{{ hh.what }}</span><span style="font-size:13px;color:var(--muted)">{{ hh.when }}</span></li></sc-for></ol></sc-if><sc-if value="{{ sel.noHistory }}" hint-placeholder-val="{{ false }}"><p style="font-size:15px;color:var(--muted);border:1px dashed var(--dash);border-radius:12px;padding:14px 16px">Nothing sent yet. When you claim, the letter and every chaser will show here.</p></sc-if>
+            </div>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- claim now -->
+    <sc-if value="{{ isClaim }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Claim now" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Check the claim</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">For filled this in from the contract. Change anything that's wrong, then send. Nothing goes until you confirm.</p>
+        </div>
+
+        <sc-if value="{{ mailboxMissing }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--bg2);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:16px;font-weight:500;color:var(--ink)">Connect your mailbox first.</span>
+            <span style="font-size:14px;color:var(--ink-body)">The claim goes from your own address, so For needs one to send from.</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ drafting }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:12px" aria-busy="true">
+            <div style="height:64px;border-radius:12px;background:var(--bg2)"></div>
+            <div style="height:64px;border-radius:12px;background:var(--bg2)"></div>
+            <div style="height:200px;border-radius:12px;background:var(--bg2)"></div>
+            <p style="font-size:14px;color:var(--muted)">For is drafting the claim from the contract.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ drafted }}" hint-placeholder-val="{{ true }}">
+          <div style="background:var(--work);border:1px solid var(--dim);border-radius:12px;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 18px;border-bottom:1px solid var(--dim)">
+              <span style="font-size:14px;color:var(--muted)">From</span>
+              <span style="font-size:16px;color:var(--ink);text-align:right;word-break:break-all">{{ mailboxAddress }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 18px;border-bottom:1px solid var(--dim)">
+              <span style="font-size:14px;color:var(--muted)">To <span style="color:var(--info-fg)">· filled by For</span></span>
+              <span style="font-size:16px;color:var(--ink);text-align:right;word-break:break-all">{{ sel.toAddress }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 18px;border-bottom:1px solid var(--dim)">
+              <span style="font-size:14px;color:var(--muted)">Amount <span style="color:var(--info-fg)">· filled by For</span></span>
+              <span style="font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums">{{ sel.amountText }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:16px;padding:14px 18px">
+              <span style="font-size:14px;color:var(--muted)">Due <span style="color:var(--info-fg)">· filled by For</span></span>
+              <span style="font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums">{{ sel.dueLong }}</span>
+            </div>
+          </div>
+
+          <label style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:500;color:var(--ink)">Message <span style="font-weight:400;color:var(--info-fg)">· drafted by For, yours to edit</span></span>
+            <textarea value="{{ draft }}" onChange="{{ onDraft }}" rows="{{ draftRows }}" style="width:100%;min-height:260px;border-radius:8px;background:var(--work);border:1px solid var(--line);padding:14px;font-size:16px;line-height:1.6;color:var(--ink);resize:vertical;outline:none" style-focus="border-color:var(--brand);box-shadow:var(--focus-ring)"></textarea>
+          </label>
+          <p style="font-size:14px;color:var(--muted)">Goes from your own address. A copy lands in your inbox.</p>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <!-- sent -->
+    <sc-if value="{{ isSent }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Claim sent" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ sentHeadline }}</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">We'll tell you when they reply. If nothing comes back in 7 days, For chases them.</p>
+        </div>
+        <div style="background:var(--bg2);border-radius:12px;padding:16px 18px;display:flex;justify-content:space-between;gap:16px;align-items:center">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:16px;font-weight:500;color:var(--ink)">{{ sel.project }}</span>
+            <span style="font-size:14px;color:var(--muted)">{{ sel.amountText }} · sent {{ today }}</span>
+          </div>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="warn" hint-size="70px,26px">claimed</x-import>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- one main action, at the foot of the content -->
+    <sc-if value="{{ hasAction }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="primary" on-click="{{ primaryAction }}" disabled="{{ primaryDisabled }}" dc-props="{{ wideProps }}" hint-size="100%,52px">{{ primaryLabel }}</x-import>
+        <sc-if value="{{ showSecondary }}" hint-placeholder-val="{{ false }}">
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="secondary" on-click="{{ goBack }}" dc-props="{{ wideProps }}" hint-size="100%,52px">{{ secondaryLabel }}</x-import>
+        </sc-if>
+      </div>
+    </sc-if>
+  </main>
+
+  <!-- site-style nav: back bottom-left (history), up bottom-right (scroll to top) -->
+  <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+    <button type="button" aria-label="Go back" onClick="{{ goBack }}" style="{{ backStyle }}" style-hover="transform:translateX(-5px)">
+      <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="{{ backIconSize }}" hint-size="32px,23px"></x-import>
+    </button>
+  </sc-if>
+  <button type="button" aria-label="Back to top" onClick="{{ scrollTop }}" style="{{ upStyle }}" style-hover="transform:translateY(-5px)">
+    <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="up" size="{{ upIconSize }}" hint-size="23px,32px"></x-import>
+  </button>
+
+  <!-- For: side panel on wide screens, so the conversation builds -->
+  <sc-if value="{{ showMark }}" hint-placeholder-val="{{ true }}">
+    <button type="button" aria-label="Ask For" onClick="{{ openChat }}" style="position:fixed;right:{{ markRight }};bottom:{{ markBottom }};width:44px;height:44px;padding:0;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:400;transition:transform .6s cubic-bezier(.4,0,.2,1)" style-hover="transform:rotate(180deg)">
+      <svg viewBox="0 0 284.21 284.21" style="width:30px;height:30px;display:block;color:var(--ink)" aria-hidden="true"><path fill="currentColor" d="M274.11,132.33h-89.21c-7.09,0-10.63-8.57-5.62-13.58l63.04-63.04c3.7-3.7,4.16-9.74.68-13.65-3.77-4.25-10.28-4.4-14.24-.44l-63.3,63.3c-5.01,5.01-13.58,1.46-13.58-5.62V9.78c0-5.4-4.38-9.78-9.78-9.78h0c-5.4,0-9.78,4.38-9.78,9.78v89.54c0,7.09-8.57,10.63-13.58,5.62l-63.32-63.32c-3.97-3.97-10.5-3.81-14.27.47-3.44,3.91-3,9.9.68,13.59l63.08,63.08c5.01,5.01,1.46,13.58-5.62,13.58H10.1c-5.38,0-10,4.21-10.1,9.59-.1,5.48,4.31,9.96,9.77,9.96h89.53c7.09,0,10.63,8.57,5.62,13.58l-63.06,63.06c-3.68,3.68-4.12,9.67-.68,13.59,3.76,4.29,10.3,4.44,14.27.48l63.31-63.31c5.01-5.01,13.58-1.46,13.58,5.62v89.53c0,5.4,4.38,9.78,9.78,9.78h0c5.4,0,9.78-4.38,9.78-9.78v-89.52c0-7.09,8.57-10.63,13.58-5.62l63.06,63.06c3.68,3.68,9.67,4.12,13.59.68,4.29-3.77,4.44-10.3.48-14.27l-63.3-63.3c-5.01-5.01-1.46-13.58,5.62-13.58h89.53c5.46,0,9.87-4.48,9.77-9.96-.1-5.38-4.72-9.59-10.1-9.59Z"></path></svg>
+    </button>
+  </sc-if>
+  <sc-if value="{{ chatPanel }}" hint-placeholder-val="{{ false }}">
+    <aside aria-label="For" style="{{ chatAsideStyle }}">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:{{ chatHeadPad }}">
+        <span style="font-size:13px;color:var(--muted);padding-left:16px">{{ askContext }}</span>
+        <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.IconButton" icon="x" title="Close" on-click="{{ closeChat }}" size="{{ closeSize }}" hint-size="40px,40px"></x-import>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:{{ chatLogPad }};display:flex;flex-direction:column;gap:10px;justify-content:flex-end">
+        <sc-if value="{{ noMessages }}" hint-placeholder-val="{{ true }}"><p style="font-size:18px;font-weight:300;line-height:1.5;color:var(--ink-body);text-wrap:pretty;padding:0 0 8px">Ask about {{ askContext }}, or send a photo of a card, a plate or a letter.</p></sc-if>
+        <sc-for list="{{ messages }}" as="m" hint-placeholder-count="0">
+          <div style="display:flex;flex-direction:column;gap:2px;align-items:{{ m.align }}">
+            <span style="font-size:15px;line-height:1.5;color:var(--ink);background:{{ m.bg }};border-radius:12px;padding:{{ m.pad }};max-width:92%;text-wrap:pretty">{{ m.text }}</span>
+            <span style="font-size:12px;color:var(--muted);padding:0 4px">{{ m.who }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <form aria-label="Ask For" onSubmit="{{ onAsk }}" style="margin:{{ chatBoxMargin }};min-height:{{ chatBoxMinH }};max-height:300px;border-radius:{{ chatBoxRadius }};background:var(--bg2);border:1px solid var(--dim);padding:16px 0 0;display:flex;flex-direction:column;justify-content:space-between;gap:12px;box-sizing:border-box;transition:border-color .2s ease" style-focus="border-color:var(--line)">
+            <textarea rows="1" value="{{ ask }}" onChange="{{ onAskChange }}" onKeyDown="{{ onAskKey }}" placeholder="Reply…" style="background:transparent;border:none;outline:none;resize:none;font-family:var(--sans);font-weight:300;font-size:18px;color:var(--ink);line-height:1.7;width:100%;min-height:28px;max-height:180px;overflow-y:auto;padding:0 20px;box-sizing:border-box"></textarea>
+            <div style="display:flex;align-items:center;justify-content:flex-end;flex-shrink:0;padding:0 12px 12px;gap:0">
+              <button type="button" title="Speak to For" style="width:40px;height:40px;cursor:pointer;color:var(--muted);opacity:.5;background:none;border:1px solid transparent;padding:0;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:opacity .2s,color .2s" style-hover="opacity:1;color:var(--ink)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="microphone" size="20" hint-size="11px,20px"></x-import></button>
+              <button type="submit" title="Send" style="display:{{ sendDisplay }};width:40px;height:40px;cursor:pointer;color:var(--muted);opacity:.5;background:none;border:1px solid transparent;padding:0;border-radius:8px;align-items:center;justify-content:center;transition:opacity .2s,color .2s" style-hover="opacity:1;color:var(--ink)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="up" size="20" hint-size="15px,20px"></x-import></button>
+            </div>
+          </form>
+    </aside>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;mobileStyle&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;panels&quot;, &quot;paper&quot;, &quot;summary&quot;], &quot;default&quot;: &quot;summary&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Mobile&quot;}, &quot;listState&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;populated&quot;, &quot;loading&quot;, &quot;empty&quot;, &quot;error&quot;], &quot;default&quot;: &quot;populated&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;States&quot;}, &quot;offline&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;States&quot;}, &quot;mailboxConnected&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;States&quot;}, &quot;clientLogo&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Brand&quot;}}">
+const RETENTIONS = [
+  { id: 'meadow', project: 'Meadow Rise phase 2', contractor: 'Harlow Build', toAddress: 'accounts@harlowbuild.co.uk', amount: 6200, due: '2026-08-14', status: 'overdue', sum: 124000, pct: 5, pc: '2025-08-14', dlp: 12,
+    history: [ { what: 'For chased Harlow Build for the £6,200 release.', when: '4 Sep 2026' }, { what: 'For asked Harlow Build to release the second half of retention.', when: '14 Aug 2026' }, { what: 'For sent a 30-day reminder that the defects period ends 14 Aug.', when: '15 Jul 2026' } ] },
+  { id: 'kingsway', project: 'Kingsway depot', contractor: 'Barratt Hill Construction', toAddress: 'commercial@barratthill.co.uk', amount: 2450, due: '2026-09-02', status: 'overdue', sum: 49000, pct: 5, pc: '2025-09-02', dlp: 12,
+    history: [ { what: 'For drafted a claim. It\'s waiting for you to check and send.', when: '29 Sep 2026' } ] },
+  { id: 'oakfield', project: 'Oakfield School extension', contractor: 'Willmott Grey', toAddress: 'qs@willmottgrey.com', amount: 4800, due: '2026-10-30', status: 'due', sum: 96000, pct: 5, pc: '2025-10-30', dlp: 12, history: [] },
+  { id: 'station', project: 'Station Road flats', contractor: 'Harlow Build', toAddress: 'accounts@harlowbuild.co.uk', amount: 1870, due: '2026-11-18', status: 'due', sum: 74800, pct: 5, pc: '2025-11-18', dlp: 12, history: [] },
+  { id: 'ridgeway', project: 'Ridgeway Business Park', contractor: 'Kier Morgan', toAddress: 'payments@kiermorgan.co.uk', amount: 2100, due: '2026-09-12', status: 'claimed', sum: 42000, pct: 5, pc: '2025-09-12', dlp: 12,
+    history: [ { what: 'You sent the claim to Kier Morgan.', when: '12 Sep 2026' } ] },
+  { id: 'link', project: 'Swindon Link Road drainage', contractor: 'Galliford Stone', toAddress: 'ap@gallifordstone.co.uk', amount: 1000, due: '2026-06-05', status: 'paid', sum: 40000, pct: 5, pc: '2025-06-05', dlp: 12,
+    history: [ { what: 'Galliford Stone paid £1,000. Matched to your bank on 19 Jun.', when: '19 Jun 2026' }, { what: 'You sent the claim to Galliford Stone.', when: '5 Jun 2026' } ] }
+];
+const PROJECTS = [
+  { id: 'brookside', name: 'Brookside Farm drainage', contractor: 'Harlow Build', state: 'live', order: 68000, start: '2026-09-07', finish: '2026-11-20', progress: 38, retentionId: null, ops: ['marek', 'aiden'], kit: ['dumper'],
+    ref: 'HB-2026-114', address: 'Brookside Farm, Wroughton SN4', manager: 'Paul Grant · Harlow Build · 07700 900 210', retentionNote: '5% retention accrues on each valuation. Nothing held until valuation 1 is certified.',
+    works: [ { name: 'Site set-up and welfare', detail: 'Done 11 Sep', tone: 'ok', word: 'done' }, { name: 'Foul drainage runs', detail: '6 of 9 runs laid · 2 weeks left', tone: 'warn', word: 'in progress' }, { name: 'Surface water and soakaways', detail: 'Starts 19 Oct', tone: 'info', word: 'scheduled' }, { name: 'Manholes and testing', detail: 'Starts 2 Nov', tone: 'info', word: 'scheduled' } ],
+    progressNote: '38% done, 32% of the programme used. 4 days ahead.',
+    hs: [ { name: 'RAMS · drainage excavation', detail: 'Rev C · accepted by Harlow Build 4 Sep', tone: 'ok', word: 'accepted' }, { name: 'Construction phase plan', detail: 'Harlow Build · received 2 Sep', tone: 'ok', word: 'on file' }, { name: 'Permit to dig', detail: 'Renews weekly · signed Mon 28 Sep', tone: 'ok', word: 'valid' }, { name: 'COSHH assessments', detail: 'Cement, diesel, pipe lubricant', tone: 'ok', word: 'on file' }, { name: 'Service drawings', detail: 'Utility search dated 20 Aug · over 6 weeks old', tone: 'warn', word: 'check' } ],
+    tbts: [ { name: 'Working near services', detail: 'Marek Nowak, Aiden Cole · 28 Sep', tone: 'ok', word: 'signed' }, { name: 'Excavation safety', detail: 'Marek Nowak, Aiden Cole · 14 Sep', tone: 'ok', word: 'signed' }, { name: 'Site induction', detail: 'Harlow Build · 7 Sep', tone: 'ok', word: 'signed' } ],
+    incidents: [ { name: 'Near miss · gas service exposed', detail: 'Reported by Marek Nowak 22 Sep · closed 23 Sep, Harlow Build told', tone: 'ok', word: 'closed' } ] },
+  { id: 'oakfield', name: 'Oakfield School extension', contractor: 'Willmott Grey', state: 'defects', order: 96000, start: '2025-04-14', finish: '2025-10-30', progress: 100, retentionId: 'oakfield', ops: ['lee'], kit: ['exc'],
+    ref: 'WG-0882', address: 'Oakfield School, Chippenham SN15', manager: 'Rachel Owen · Willmott Grey · 07700 900 330',
+    works: [ { name: 'Reduced level dig', detail: 'Done May 2025', tone: 'ok', word: 'done' }, { name: 'Foundations and drainage', detail: 'Done Aug 2025', tone: 'ok', word: 'done' }, { name: 'External works', detail: 'Done Oct 2025', tone: 'ok', word: 'done' }, { name: 'Defects visit · settled trench', detail: 'Lee Parker on site this week', tone: 'warn', word: 'in progress' } ],
+    progressNote: 'Works complete. One defect open before the period ends 30 Oct.',
+    hs: [ { name: 'RAMS · groundworks', detail: 'Rev B · accepted Apr 2025', tone: 'ok', word: 'accepted' }, { name: 'RAMS · defects visit', detail: 'Rev A · accepted 26 Sep', tone: 'ok', word: 'accepted' }, { name: 'Construction phase plan', detail: 'Willmott Grey · received Apr 2025', tone: 'ok', word: 'on file' } ],
+    tbts: [ { name: 'Working on a live school site', detail: 'Lee Parker · 29 Sep', tone: 'ok', word: 'signed' }, { name: 'Excavation safety', detail: 'Crew of 4 · Jun 2025', tone: 'ok', word: 'signed' } ],
+    incidents: [] },
+  { id: 'station', name: 'Station Road flats', contractor: 'Harlow Build', state: 'defects', order: 74800, start: '2025-05-19', finish: '2025-11-18', progress: 100, retentionId: 'station', ops: ['josh'], kit: ['box'],
+    ref: 'HB-2025-071', address: 'Station Road, Swindon SN1', manager: 'Paul Grant · Harlow Build · 07700 900 210',
+    works: [ { name: 'Foul and surface water drainage', detail: 'Done Sep 2025', tone: 'ok', word: 'done' }, { name: 'Service ducts', detail: 'Done Nov 2025', tone: 'ok', word: 'done' }, { name: 'Defects visit · gully reset', detail: 'Josh Reid on site this week', tone: 'warn', word: 'in progress' } ],
+    progressNote: 'Works complete. One defect open before the period ends 18 Nov.',
+    hs: [ { name: 'RAMS · drainage', detail: 'Rev A · accepted May 2025', tone: 'ok', word: 'accepted' }, { name: 'Construction phase plan', detail: 'Harlow Build · received May 2025', tone: 'ok', word: 'on file' }, { name: 'Trench box inspection', detail: 'Weekly · last 29 Sep', tone: 'ok', word: 'checked' } ],
+    tbts: [ { name: 'Excavation safety', detail: 'Josh Reid · 9 Sep', tone: 'ok', word: 'signed' } ],
+    incidents: [] },
+  { id: 'meadow', name: 'Meadow Rise phase 2', contractor: 'Harlow Build', state: 'complete', order: 124000, start: '2024-11-04', finish: '2025-08-14', progress: 100, retentionId: 'meadow', ops: [], kit: [],
+    ref: 'HB-2024-203', address: 'Meadow Rise, Royal Wootton Bassett SN4', manager: 'Paul Grant · Harlow Build · 07700 900 210',
+    works: [ { name: 'Roads and sewers', detail: 'Done Apr 2025', tone: 'ok', word: 'done' }, { name: 'Plot foundations · 24 plots', detail: 'Done Jul 2025', tone: 'ok', word: 'done' }, { name: 'External works', detail: 'Done Aug 2025', tone: 'ok', word: 'done' } ],
+    progressNote: 'Complete. Defects period ended 14 Aug 2026 with nothing open.',
+    hs: [ { name: 'RAMS · roads and sewers', detail: 'Rev D · accepted Nov 2024', tone: 'ok', word: 'accepted' }, { name: 'Construction phase plan', detail: 'Harlow Build · received Oct 2024', tone: 'ok', word: 'on file' }, { name: 'Handover file', detail: 'Sent to Harlow Build 14 Aug 2025', tone: 'ok', word: 'sent' } ],
+    tbts: [ { name: 'Manual handling', detail: 'Crew of 6 · Jun 2025', tone: 'ok', word: 'signed' }, { name: 'Working near services', detail: 'Crew of 6 · Jan 2025', tone: 'ok', word: 'signed' } ],
+    incidents: [ { name: 'Minor injury · cut hand', detail: 'Marek Nowak 3 Mar 2025 · first aid, back on site same day · RIDDOR not needed', tone: 'ok', word: 'closed' } ] },
+  { id: 'kingsway', name: 'Kingsway depot', contractor: 'Barratt Hill Construction', state: 'complete', order: 49000, start: '2025-06-02', finish: '2025-09-02', progress: 100, retentionId: 'kingsway', ops: [], kit: [],
+    ref: 'BHC-4471', address: 'Kingsway Industrial Estate, Swindon SN2', manager: 'Tony Marsh · Barratt Hill · 07700 900 118',
+    works: [ { name: 'Yard drainage and interceptor', detail: 'Done Aug 2025', tone: 'ok', word: 'done' }, { name: 'Concrete hardstanding', detail: 'Done Sep 2025', tone: 'ok', word: 'done' } ],
+    progressNote: 'Complete. Defects period ended 2 Sep 2026 with nothing open.',
+    hs: [ { name: 'RAMS · yard drainage', detail: 'Rev A · accepted Jun 2025', tone: 'ok', word: 'accepted' }, { name: 'Construction phase plan', detail: 'Barratt Hill · received Jun 2025', tone: 'ok', word: 'on file' } ],
+    tbts: [ { name: 'Working with concrete', detail: 'Crew of 3 · Aug 2025', tone: 'ok', word: 'signed' } ],
+    incidents: [] },
+  { id: 'ridgeway', name: 'Ridgeway Business Park', contractor: 'Kier Morgan', state: 'complete', order: 42000, start: '2025-06-16', finish: '2025-09-12', progress: 100, retentionId: 'ridgeway', ops: [], kit: [],
+    ref: 'KM-26-0192', address: 'Ridgeway Business Park, Marlborough SN8', manager: 'Helen Price · Kier Morgan · 07700 900 276',
+    works: [ { name: 'Car park drainage', detail: 'Done Aug 2025', tone: 'ok', word: 'done' }, { name: 'Kerbs and footpaths', detail: 'Done Sep 2025', tone: 'ok', word: 'done' } ],
+    progressNote: 'Complete. Defects period ended 12 Sep 2026 with nothing open.',
+    hs: [ { name: 'RAMS · external works', detail: 'Rev B · accepted Jun 2025', tone: 'ok', word: 'accepted' }, { name: 'Construction phase plan', detail: 'Kier Morgan · received Jun 2025', tone: 'ok', word: 'on file' } ],
+    tbts: [ { name: 'Site induction', detail: 'Kier Morgan · Jun 2025', tone: 'ok', word: 'signed' } ],
+    incidents: [] },
+  { id: 'link', name: 'Swindon Link Road drainage', contractor: 'Galliford Stone', state: 'complete', order: 40000, start: '2025-02-03', finish: '2025-06-05', progress: 100, retentionId: 'link', ops: [], kit: [],
+    ref: 'GS-1190', address: 'Link Road, Swindon SN5', manager: 'Chris Dale · Galliford Stone · 07700 900 402',
+    works: [ { name: 'Highway drainage', detail: 'Done May 2025', tone: 'ok', word: 'done' }, { name: 'Attenuation tank', detail: 'Done Jun 2025', tone: 'ok', word: 'done' } ],
+    progressNote: 'Complete and paid in full.',
+    hs: [ { name: 'RAMS · highway drainage', detail: 'Rev A · accepted Feb 2025', tone: 'ok', word: 'accepted' }, { name: 'Traffic management plan', detail: 'Galliford Stone · received Jan 2025', tone: 'ok', word: 'on file' } ],
+    tbts: [ { name: 'Working near live traffic', detail: 'Crew of 4 · Feb 2025', tone: 'ok', word: 'signed' } ],
+    incidents: [] }
+];
+const PSTATE = { live: { tone: 'info', word: 'live' }, defects: { tone: 'warn', word: 'defects period' }, complete: { tone: 'ok', word: 'complete' } };
+const OPERATIVES = [
+  { id: 'lee', name: 'Lee Parker', trade: 'Excavator operator', cards: 'CPCS, IPAF', tone: 'warn', word: 'expiring', note: 'IPAF runs out 30 Oct 2026', job: 'On Oakfield School extension this week', approved: '3 Mar 2026', phone: '07700 900 412', started: '12 Jan 2024', ni: 'QQ 12 34 56 C', emergency: 'Sarah Parker · 07700 900 413',
+    cardList: [ { name: 'IPAF 3a/3b', detail: 'Runs out 30 Oct 2026 · 30 days', tone: 'warn', word: 'expiring' }, { name: 'CPCS A59 360° excavator', detail: 'To 8 Feb 2029', tone: 'ok', word: 'valid' }, { name: 'CSCS Blue', detail: 'To 14 May 2028', tone: 'ok', word: 'valid' } ],
+    training: [ { name: 'IPAF renewal', detail: 'Booked 21 Oct 2026 · Swindon Training Centre', tone: 'info', word: 'booked' }, { name: 'Toolbox talk: working near services', detail: 'Signed 23 Sep 2026 · Oakfield School', tone: 'ok', word: 'signed' }, { name: 'SSSTS', detail: 'Completed 3 Mar 2026 · to 3 Mar 2031', tone: 'ok', word: 'valid' }, { name: 'Asbestos awareness', detail: 'Completed 14 Oct 2025 · yearly refresher due 14 Oct 2026', tone: 'warn', word: 'due' } ] },
+  { id: 'marek', name: 'Marek Nowak', trade: 'Groundworker', cards: 'CSCS to Mar 2028', tone: 'ok', word: 'valid', job: 'On Brookside Farm drainage this week', approved: '19 Aug 2025', phone: '07700 900 521', started: '4 Aug 2025', ni: 'QQ 98 76 54 A', emergency: 'Anna Nowak · 07700 900 522',
+    cardList: [ { name: 'CSCS Green', detail: 'To 22 Mar 2028', tone: 'ok', word: 'valid' }, { name: 'Abrasive wheels', detail: 'To 1 Nov 2027', tone: 'ok', word: 'valid' } ],
+    training: [ { name: 'Toolbox talk: working near services', detail: 'Signed 28 Sep 2026 · Brookside Farm', tone: 'ok', word: 'signed' }, { name: 'Asbestos awareness', detail: 'Completed 5 Aug 2025 · refresher due 5 Aug 2026', tone: 'bad', word: 'overdue' } ] },
+  { id: 'josh', name: 'Josh Reid', trade: 'Pipelayer', cards: 'CSCS, Streetworks to Jan 2027', tone: 'ok', word: 'valid', job: 'On Station Road flats this week', approved: '2 Feb 2026', phone: '07700 900 633', started: '15 Sep 2023', ni: 'QQ 45 67 89 B', emergency: 'Mark Reid · 07700 900 634',
+    cardList: [ { name: 'CSCS Blue', detail: 'To 9 Jun 2029', tone: 'ok', word: 'valid' }, { name: 'NRSWA Streetworks', detail: 'To 17 Jan 2027', tone: 'ok', word: 'valid' } ],
+    training: [ { name: 'Confined spaces (low risk)', detail: 'Completed 20 Jan 2026 · to 20 Jan 2029', tone: 'ok', word: 'valid' }, { name: 'Toolbox talk: excavation safety', detail: 'Signed 9 Sep 2026 · Station Road', tone: 'ok', word: 'signed' } ] },
+  { id: 'aiden', name: 'Aiden Cole', trade: 'Groundworker', cards: 'CSCS to Jun 2027', tone: 'ok', word: 'valid', job: 'On Brookside Farm drainage this week', approved: '11 Jun 2026', phone: '07700 900 744', started: '2 Jun 2026', ni: 'QQ 11 22 33 D', emergency: 'Gemma Cole · 07700 900 745',
+    cardList: [ { name: 'CSCS Green', detail: 'To 30 Jun 2027', tone: 'ok', word: 'valid' } ], training: [] }
+];
+const EQUIPMENT = [
+  { id: 'exc', name: '8t excavator · JCB 85Z-2', meta: 'Owned · on Oakfield School extension', tone: 'ok', word: 'checked', check: 'Weekly check signed by Lee Parker · 28 Sep 2026 · LOLER to 3 Feb 2027',
+    rows: [ { k: 'Serial', v: 'JCB85Z2-0471938' }, { k: 'Owner', v: 'Harlow Groundworks Ltd' }, { k: 'Where', v: 'Oakfield School extension' }, { k: 'Operator', v: 'Lee Parker' }, { k: 'Bought', v: 'Mar 2023' } ],
+    certs: [ { name: 'LOLER thorough examination', detail: 'To 3 Feb 2027', tone: 'ok', word: 'valid' }, { name: 'Weekly check', detail: 'Signed 28 Sep 2026 · next due 5 Oct', tone: 'ok', word: 'checked' }, { name: 'Service', detail: 'Last 500 h service 12 Aug 2026', tone: 'ok', word: 'valid' } ],
+    history: [ { what: 'Lee Parker signed the weekly check. No defects.', when: '28 Sep 2026' }, { what: 'Lee Parker signed the weekly check. Slow-track grease nipple noted, done same day.', when: '21 Sep 2026' }, { what: 'Moved from Meadow Rise phase 2 to Oakfield School extension.', when: '15 Sep 2026' } ] },
+  { id: 'dumper', name: '3t dumper · Thwaites', meta: 'Owned · on Brookside Farm drainage', tone: 'warn', word: 'due', check: 'Weekly check due today · last signed 21 Sep 2026',
+    rows: [ { k: 'Serial', v: 'TH3T-2019-8812' }, { k: 'Owner', v: 'Harlow Groundworks Ltd' }, { k: 'Where', v: 'Brookside Farm drainage' }, { k: 'Operator', v: 'Marek Nowak' }, { k: 'Bought', v: 'Jun 2019' } ],
+    certs: [ { name: 'Weekly check', detail: 'Due today · last signed 21 Sep 2026', tone: 'warn', word: 'due' }, { name: 'Service', detail: 'Last service 4 Jul 2026', tone: 'ok', word: 'valid' } ],
+    history: [ { what: 'Marek Nowak signed the weekly check. No defects.', when: '21 Sep 2026' }, { what: 'For reminded Marek Nowak the check is due.', when: '30 Sep 2026' } ] },
+  { id: 'box', name: 'Trench box · 3.0 m', meta: 'Hired from GAP · on Station Road flats', tone: 'ok', word: 'checked', check: 'Inspected 29 Sep 2026 · hire ends 14 Oct 2026',
+    rows: [ { k: 'Hire ref', v: 'GAP-448201' }, { k: 'Hired from', v: 'GAP Hire, Swindon' }, { k: 'Where', v: 'Station Road flats' }, { k: 'On hire since', v: '16 Sep 2026' }, { k: 'Weekly rate', v: '£85' } ],
+    certs: [ { name: 'Excavation support inspection', detail: 'Inspected 29 Sep 2026 · next due 6 Oct', tone: 'ok', word: 'checked' }, { name: 'Hire period', detail: 'Ends 14 Oct 2026', tone: 'info', word: 'on hire' } ],
+    history: [ { what: 'Josh Reid inspected the box before the shift. No damage.', when: '29 Sep 2026' }, { what: 'Delivered by GAP. Hire note read by For, dates added.', when: '16 Sep 2026' } ] },
+  { id: 'laser', name: 'Laser level · Topcon RL-H5A', meta: 'Owned · in the van', tone: 'warn', word: 'expiring', check: 'Calibration runs out 24 Oct 2026 · 23 days',
+    rows: [ { k: 'Serial', v: 'RLH5A-77-20391' }, { k: 'Owner', v: 'Harlow Groundworks Ltd' }, { k: 'Where', v: 'Ford Transit · WR21 KLM' }, { k: 'Bought', v: 'Oct 2024' } ],
+    certs: [ { name: 'Calibration certificate', detail: 'Runs out 24 Oct 2026 · 23 days', tone: 'warn', word: 'expiring' } ],
+    history: [ { what: 'For reminded you the calibration is due. Book with Topcon Swindon.', when: '24 Sep 2026' }, { what: 'Calibrated by Topcon Swindon.', when: '24 Oct 2025' } ] },
+  { id: 'van', name: 'Ford Transit · WR21 KLM', meta: 'Owned · Dan Harlow', tone: 'bad', word: 'overdue', check: 'MOT ran out 25 Sep 2026 · book it before it goes on the road',
+    rows: [ { k: 'Registration', v: 'WR21 KLM' }, { k: 'Owner', v: 'Harlow Groundworks Ltd' }, { k: 'Driver', v: 'Dan Harlow' }, { k: 'Mileage', v: '84,210' }, { k: 'Insurance', v: 'To 1 Mar 2027' } ],
+    certs: [ { name: 'MOT', detail: 'Ran out 25 Sep 2026 · 5 days overdue', tone: 'bad', word: 'overdue' }, { name: 'Tax', detail: 'To 1 Jan 2027', tone: 'ok', word: 'valid' }, { name: 'Insurance', detail: 'To 1 Mar 2027', tone: 'ok', word: 'valid' } ],
+    history: [ { what: 'For chased you again. The van has no MOT and is not road legal.', when: '30 Sep 2026' }, { what: 'For reminded you the MOT runs out in 30 days.', when: '26 Aug 2026' } ] }
+];
+const PENDING = [
+  { id: 'tom', name: 'Tom Bailey', fullName: 'Thomas Bailey', phone: '07700 900 858', trade: 'Groundworker', emergency: 'Claire Bailey · 07700 900 859', status: 'cards in', when: 'Cards in 29 Sep', photos: ['CSCS front', 'CSCS back', 'Streetworks card'],
+    cards: [ { name: 'CSCS Green', detail: 'No. 01234567 · to 18 Feb 2029', tone: 'ok', word: 'valid' }, { name: 'NRSWA Streetworks', detail: 'No. 55 8821 · to 2 Dec 2026', tone: 'warn', word: 'expiring' } ],
+    note: 'For checked both card numbers with the schemes. The Streetworks card runs out in 9 weeks, so you\'ll get a reminder.' },
+  { id: 'ryan', name: 'Ryan Doyle', phone: '07700 900 961', trade: 'Pipelayer', status: 'invited', when: 'Link sent 28 Sep · not opened yet' }
+];
+const PEOPLE = [
+  { name: 'Dan Harlow', email: 'dan@harlowgroundworks.co.uk', role: 'Director' },
+  { name: 'Sam Whitlock', email: 'sam@harlowgroundworks.co.uk', role: 'QS' },
+  { name: 'Lee Parker', email: '07700 900 412', role: 'Supervisor' }
+];
+const TODAY = new Date('2026-09-30');
+const ORDER = { overdue: 0, due: 1, claimed: 2, paid: 3 };
+const TONE = { overdue: 'bad', due: 'info', claimed: 'warn', paid: 'ok' };
+const gbp = n => '£' + n.toLocaleString('en-GB');
+const dLong = s => new Date(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+const dShort = s => new Date(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+const days = s => Math.round((TODAY - new Date(s)) / 86400000);
+function draftFor(r) {
+  return 'Dear ' + r.contractor + ',\n\nRe: ' + r.project + ' — release of retention\n\nThe defects liability period on this contract ended on ' + dLong(r.due) + '. The second half of retention, ' + gbp(r.amount) + ', is now due for release under the contract.\n\nPlease confirm the release and the date payment will be made. If there are any outstanding defects you believe affect this, send us the list and we will attend within 7 days.\n\nKind regards,\nDan Harlow\nHarlow Groundworks Ltd';
+}
+
+class Component extends DCLogic {
+  state = { screen: 'today', from: 'today', selId: null, opId: null, unitId: null, candId: null, pjId: null, inv: { name: '', phone: '', start: '' }, invites: [], approved: [], history: [], scrolled: false, wide: window.innerWidth >= 1040, mobile: window.innerWidth <= 768, mobileStyle: (new URLSearchParams(location.search).get('m')) || 'summary', safeTop: +(new URLSearchParams(location.search).get('top')) || 0, chatOpen: false, messages: [], claimed: {}, draft: '', drafting: false, ask: '', askReply: '', mailbox: null };
+  componentDidMount() {
+    try { const q = new URLSearchParams(location.search); const st = +q.get('top') || 0; const ms = q.get('m'); this._urlStyle = ms || null; if (st || ms) this.setState({ safeTop: st, mobileStyle: ms || this.state.mobileStyle }); const sc = q.get('screen'); if (sc) { const id = q.get('id'); const map = { project: 'pjId', operative: 'opId', unit: 'unitId', detail: 'selId', approve: 'candId' }; this.setState({ screen: sc, history: sc === 'today' ? [] : [{ screen: 'today' }], ...(id && map[sc] ? { [map[sc]]: id } : {}) }); } } catch (e) {}
+    try { const s = JSON.parse(localStorage.getItem('fp-claimed') || '{}'); this.setState({ claimed: s }); } catch (e) {}
+    try { const l = JSON.parse(localStorage.getItem('fp-layouts') || 'null'); if (l && typeof l === 'object') this.setState({ layouts: l }); } catch (e) {}
+    this._mo = new MutationObserver(() => this.forceUpdate());
+    this._mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    this._onScroll = () => { const s = window.scrollY > window.innerHeight * 0.8; if (s !== this.state.scrolled) this.setState({ scrolled: s }); };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    this._onResize = () => { const w = window.innerWidth >= 1040, m = window.innerWidth <= 768; if (w !== this.state.wide || m !== this.state.mobile) this.setState({ wide: w, mobile: m }); };
+    window.addEventListener('resize', this._onResize); this._onResize();
+    this._ro = new ResizeObserver(() => this.layoutMasonry()); this._ro.observe(document.body);
+    this._onWinResize = () => this.layoutMasonry(); window.addEventListener('resize', this._onWinResize);
+    this.layoutMasonry();
+    // swipe right from the left edge goes back (phones have no back button)
+    this._ts = e => { const t = e.touches[0]; this._sw = t.clientX < 32 ? { x: t.clientX, y: t.clientY } : null; };
+    this._te = e => { if (!this._sw) return; const t = e.changedTouches[0]; const dx = t.clientX - this._sw.x, dy = Math.abs(t.clientY - this._sw.y); this._sw = null; if (dx > 70 && dy < 60 && ((this.state.history || []).length > 0 || this.state.screen !== 'today')) this.goBack(); };
+    window.addEventListener('touchstart', this._ts, { passive: true }); window.addEventListener('touchend', this._te, { passive: true });
+  }
+  componentWillUnmount() { this._mmo && this._mmo.disconnect(); clearTimeout(this._mt); window.removeEventListener('touchstart', this._ts); window.removeEventListener('touchend', this._te); this._mo && this._mo.disconnect(); this._ro && this._ro.disconnect(); window.removeEventListener('resize', this._onWinResize); clearTimeout(this._t); clearTimeout(this._r); window.removeEventListener('scroll', this._onScroll); window.removeEventListener('resize', this._onResize); }
+  ask(text, ctx) {
+    const messages = [...this.state.messages, { who: 'You', text }];
+    this.setState({ messages, ask: '' });
+    clearTimeout(this._r);
+    this._r = setTimeout(() => this.setState({ messages: [...this.state.messages, { who: 'For', text: 'Looking at ' + ctx + ' now. Give me a moment.' }] }), 900);
+  }
+  snap() { const { screen, selId, opId, unitId, candId, pjId } = this.state; return { screen, selId, opId, unitId, candId, pjId }; }
+  go(screen, extra, root) {
+    const history = root ? [] : [...(this.state.history || []), this.snap()];
+    this.setState({ screen, history, ...extra }); window.scrollTo(0, 0);
+  }
+  open(id, from) { this.go('detail', { selId: id, from: from || this.state.screen }); }
+  goBack() {
+    const history = [...(this.state.history || [])];
+    const prev = history.pop() || { screen: 'today', selId: null, opId: null, from: 'today' };
+    this.setState({ ...prev, history }); window.scrollTo(0, 0);
+  }
+  goUp() {
+    const history = this.state.history || [];
+    const top = history[0] || { screen: 'today', selId: null, opId: null };
+    this.setState({ ...top, history: [] }); window.scrollTo(0, 0);
+  }
+  startClaim(r, skipDraft) {
+    this.go('claim', { drafting: !skipDraft, draft: skipDraft ? draftFor(r) : '', selId: r.id });
+    clearTimeout(this._t);
+    if (!skipDraft) this._t = setTimeout(() => this.setState({ drafting: false, draft: draftFor(r) }), 1100);
+  }
+  componentDidUpdate() { this.layoutMasonry(); document.documentElement.setAttribute('data-chat-open', !this.state.wide && this.state.chatOpen ? '1' : '0'); }
+  layoutMasonry() {
+    const wrap = document.querySelector('[data-masonry]'); if (!wrap) { this._mw = null; this._mmo && this._mmo.disconnect(); if (this.state.masonry) this.setState({ masonry: null }); return; }
+    const W = wrap.clientWidth, gap = this.state.mobile && (this.state.mobileStyle === 'paper') ? 0 : 20, cols = Math.max(1, Math.floor((W + gap) / (420 + gap))), cw = (W - gap * (cols - 1)) / cols;
+    const all = [...wrap.querySelectorAll('[data-card]')];
+    if (this._ro) all.forEach(el => { this._ro.observe(el); [...el.children].forEach(c => this._ro.observe(c)); });
+    if (this._mw !== wrap) { this._mw = wrap; this._mmo && this._mmo.disconnect(); this._mmo = new MutationObserver(() => { clearTimeout(this._mt); this._mt = setTimeout(() => this.layoutMasonry(), 30); }); this._mmo.observe(wrap, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] }); [100, 400, 1000].forEach(ms => setTimeout(() => this.layoutMasonry(), ms)); }
+    const els = all.filter(e => e.style.display !== 'none').sort((a, b) => (+a.style.order) - (+b.style.order));
+    const heights = new Array(cols).fill(0), pos = {};
+    els.forEach(e => {
+      const c = heights.indexOf(Math.min(...heights));
+      pos[e.dataset.card] = { left: (c * (cw + gap)) + 'px', top: heights[c] + 'px', width: cw + 'px' };
+      heights[c] += e.offsetHeight + gap;
+    });
+    const height = Math.max(0, Math.max(...heights) - gap);
+    const prev = this.state.masonry, screen = this._screenKey;
+    const fresh = !prev || prev.screen !== screen;
+    if (!prev || prev.screen !== screen || prev.height !== height || JSON.stringify(prev.pos) !== JSON.stringify(pos)) {
+      this.setState({ masonry: { screen, pos, height, fresh } });
+      if (fresh) requestAnimationFrame(() => this.setState(s => s.masonry && s.masonry.fresh ? { masonry: { ...s.masonry, fresh: false } } : null));
+    }
+  }
+  saveLayout(screen, layout) {
+    const layouts = { ...(this.state.layouts || {}), [screen]: layout };
+    this.setState({ layouts }); try { localStorage.setItem('fp-layouts', JSON.stringify(layouts)); } catch (e) {}
+  }
+  layoutVals(screen, keys, titles, opts) {
+    opts = opts || {};
+    const mobile = !!this.state.mobile, summaries = opts.summaries || {};
+    const openKey = (this.state.openCards || {})[screen];
+    this._screenKey = screen;
+    const arranging = !!this.state.arranging;
+    const base = (this.state.layouts || {})[screen] || { order: keys, hidden: [] };
+    const order = [...base.order.filter(k => keys.includes(k)), ...keys.filter(k => !base.order.includes(k))];
+    const hidden = (base.hidden || []).filter(k => keys.includes(k));
+    const save = (o, hd) => this.saveLayout(screen, { order: o, hidden: hd });
+    const move = (k, d) => { const o = [...order]; const i = o.indexOf(k); const j = i + d; if (j < 0 || j >= o.length) return; o.splice(i, 1); o.splice(j, 0, k); save(o, hidden); };
+    const reorder = (k) => { const from = this._dragKey; if (!from || from === k) return; const o = order.filter(x => x !== from); o.splice(order.indexOf(k) > order.indexOf(from) ? o.indexOf(k) + 1 : o.indexOf(k), 0, from); save(o, hidden); };
+    const m = this.state.masonry || {}; const live = m.screen === screen; const pos = live ? m.pos : {};
+    const tr = live && !m.fresh ? 'opacity .2s cubic-bezier(.4,0,.2,1), top .25s cubic-bezier(.4,0,.2,1), left .25s cubic-bezier(.4,0,.2,1), width .25s cubic-bezier(.4,0,.2,1)' : 'none';
+    const cards = {};
+    keys.forEach(k => {
+      const p = pos[k];
+      cards[k] = {
+        order: order.indexOf(k),
+        display: hidden.includes(k) ? 'none' : 'flex',
+        visibility: p ? 'visible' : 'hidden',
+        transition: tr,
+        outline: arranging ? '1px dashed var(--dash)' : 'none',
+        opacity: this.state.dragging === k ? 0.35 : 1,
+        left: p ? p.left : '0px', top: p ? p.top : '0px', width: p ? p.width : '100%',
+        hideDisplay: opts.hide === false ? 'none' : 'inline-block',
+        bodyDisplay: !mobile || (openKey === undefined ? order.filter(x => !hidden.includes(x))[0] === k : openKey === k) ? 'flex' : 'none',
+        iconRotate: !mobile || (openKey === undefined ? order.filter(x => !hidden.includes(x))[0] === k : openKey === k) ? 'rotate(45deg)' : 'none',
+        summary: summaries[k] || '',
+        summaryDisplay: mobile && this.state.mobileStyle === 'summary' && summaries[k] && !(openKey === undefined ? order.filter(x => !hidden.includes(x))[0] === k : openKey === k) ? 'block' : 'none',
+        toggle: () => { if (!mobile) return; const cur = openKey === undefined ? order.filter(x => !hidden.includes(x))[0] : openKey; this.setState({ openCards: { ...(this.state.openCards || {}), [screen]: cur === k ? null : k } }); },
+        up: () => move(k, -1), down: () => move(k, 1),
+        hide: () => save(order, [...hidden, k]),
+        dragStart: e => { if (!arranging) return; this._dragKey = k; e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', k); } catch (x) {} setTimeout(() => this.setState({ dragging: k }), 0); },
+        dragOver: e => { if (!arranging) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (this._dragKey !== k) reorder(k); },
+        drop: e => { e.preventDefault(); this._dragKey = null; this.setState({ dragging: null }); },
+        dragEnd: () => { this._dragKey = null; this.setState({ dragging: null }); },
+      };
+    });
+    return {
+      arranging, cards,
+      arrangeCursor: arranging ? 'grab' : 'auto',
+      arrangeBarDisplay: this.state.wide ? 'flex' : 'none',
+      collapseIconDisplay: mobile ? 'flex' : 'none', collapseCursor: mobile ? 'pointer' : 'default', mobileStyle: this.state.mobileStyle || 'panels',
+      arrangeLabel: arranging ? 'Done' : 'Arrange',
+      toggleArrange: () => this.setState({ arranging: !arranging }),
+      resetArrange: () => save(keys, []),
+      hasHiddenCards: hidden.length > 0,
+      masonryHeight: (live ? m.height : 0) + 'px',
+      hiddenCards: hidden.map(k => ({ title: titles[k] || k, show: () => save(order, hidden.filter(x => x !== k)) })),
+    };
+  }
+  send(r) {
+    const claimed = { ...this.state.claimed, [r.id]: true };
+    try { localStorage.setItem('fp-claimed', JSON.stringify(claimed)); } catch (e) {}
+    this.go('sent', { claimed });
+  }
+  renderVals() {
+    const { screen, selId, claimed, draft, drafting, ask, askReply, mailbox } = this.state;
+    const listState = this.props.listState || 'populated';
+    if (!(new URLSearchParams(location.search).get('m')) && this.props.mobileStyle && this.props.mobileStyle !== this._ms) { this._ms = this.props.mobileStyle; setTimeout(() => this.setState({ mobileStyle: this.props.mobileStyle }), 0); }
+    const offline = !!this.props.offline;
+    const mailboxOn = mailbox != null ? mailbox : (this.props.mailboxConnected ?? true);
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const items = RETENTIONS.map(r => {
+      const status = claimed[r.id] && r.status !== 'paid' ? 'claimed' : r.status;
+      const late = days(r.due);
+      const dueLabel = status === 'paid' ? 'paid ' + dShort(r.due) : status === 'overdue' ? late + ' days overdue' : status === 'claimed' ? 'claimed, due ' + dShort(r.due) : 'due ' + dShort(r.due);
+      const summary = status === 'overdue' ? gbp(r.amount) + ' fell due on ' + dLong(r.due) + '. That was ' + late + ' days ago.'
+        : status === 'due' ? gbp(r.amount) + ' falls due on ' + dLong(r.due) + ', in ' + (-late) + ' days.'
+        : status === 'claimed' ? 'Claimed. ' + r.contractor + ' has not replied yet.'
+        : 'Paid in full. Nothing left to claim on this job.';
+      return { ...r, status, tone: TONE[status], statusWord: status, amountText: gbp(r.amount), sumText: gbp(r.sum), dueLabel, dueShort: dShort(r.due), dueLong: dLong(r.due),
+        heldWord: status === 'paid' ? 'retention paid' : 'retention held',
+        dueStatLabel: status === 'overdue' ? 'Fell due' : status === 'paid' ? 'Paid' : 'Due', summary,
+        contract: [ { k: 'Main contractor', v: r.contractor }, { k: 'Contract sum', v: gbp(r.sum) }, { k: 'Retention', v: r.pct + '%' }, { k: 'Practical completion', v: dLong(r.pc) }, { k: 'Defects period', v: r.dlp + ' months' }, { k: 'End of defects period', v: dLong(r.due) } ],
+        hasHistory: r.history.length > 0, noHistory: r.history.length === 0, open: () => this.open(r.id) };
+    }).sort((a, b) => ORDER[a.status] - ORDER[b.status] || new Date(a.due) - new Date(b.due));
+    const held = items.reduce((s, r) => s + r.amount, 0);
+    const overdueItems = items.filter(r => r.status === 'overdue');
+    const overdue = overdueItems.length;
+    const sel = items.find(r => r.id === selId) || items[0];
+    const kingsway = items.find(r => r.id === 'kingsway');
+    const todayItems = [];
+    if (overdue) todayItems.push({ id: 'overdue', title: overdue + ' retention' + (overdue > 1 ? 's' : '') + ' overdue, ' + gbp(overdueItems.reduce((s, r) => s + r.amount, 0)) + ' in total.', meta: overdueItems.map(r => r.project).join(' · '), tone: 'bad', word: 'overdue', go: () => this.go('money') });
+    if (kingsway.status === 'overdue') todayItems.push({ id: 'kingsway', title: 'For has drafted the Kingsway depot claim. Check it and send.', meta: 'Barratt Hill Construction · ' + kingsway.amountText, tone: 'warn', word: 'to approve', go: () => this.startClaim(kingsway, true) });
+    if (!this.state.approved.includes('tom')) todayItems.push({ id: 'tom', title: 'Tom Bailey\'s cards are in. Check and approve.', meta: 'Groundworker · CSCS and Streetworks read by For', tone: 'warn', word: 'to approve', go: () => this.go('approve', { candId: 'tom', from: 'today' }) });
+    todayItems.push({ id: 'lee', title: 'Lee Parker\'s IPAF runs out in 30 days.', meta: 'Book the renewal or he\'s off the machine from 30 Oct', tone: 'warn', word: 'expiring', go: () => this.go('operative', { opId: 'lee', from: 'today' }) });
+    const isToday = screen === 'today', isJobs = screen === 'projects', isMoney = screen === 'money', isOperatives = screen === 'operatives', isCompany = screen === 'company', isEquipment = screen === 'equipment', isUnit = screen === 'unit';
+    const isInvite = screen === 'invite', isInvited = screen === 'invited', isApprove = screen === 'approve', isApproved = screen === 'approved';
+    const { inv, invites, approved } = this.state;
+    const pendingAll = [...PENDING.filter(p => !approved.includes(p.id)), ...invites];
+    const cand = PENDING.find(p => p.id === this.state.candId) || PENDING[0];
+    const invValid = inv.name.trim().length > 1 && inv.phone.replace(/\D/g, '').length >= 10;
+    const unit = EQUIPMENT.find(e => e.id === this.state.unitId) || EQUIPMENT[0];
+    const isDetail = screen === 'detail', isClaim = screen === 'claim', isSent = screen === 'sent', isOperative = screen === 'operative', isProject = screen === 'project';
+    const projects = PROJECTS.map(p => {
+      const st = PSTATE[p.state]; const ret = p.retentionId ? items.find(r => r.id === p.retentionId) : null;
+      const left = -days(p.finish);
+      return { ...p, ...st, orderText: gbp(p.order), progressText: p.progress + '%', progressWidth: p.progress + '%',
+        listMeta: p.state === 'live' ? 'finish ' + dShort(p.finish) : p.state === 'defects' ? 'defects to ' + dShort(ret.due) : ret && ret.status === 'paid' ? 'retention paid' : 'retention ' + ret.status,
+        summary: p.state === 'live' ? p.progress + '% done. ' + left + ' days to the finish date, ' + dLong(p.finish) + '.' : p.state === 'defects' ? 'Works done ' + dLong(p.finish) + '. Defects period runs to ' + dLong(ret.due) + ', ' + (-days(ret.due)) + ' days away.' : 'Finished ' + dLong(p.finish) + '. ' + (ret ? ret.summary : ''),
+        finishLabel: p.state === 'live' ? 'Finish' : 'Finished', finishShort: dShort(p.finish),
+        ops: p.ops.map(id => { const o = OPERATIVES.find(x => x.id === id); return { name: o.name, detail: o.trade + ' · ' + o.cards, tone: o.tone, word: o.word, open: () => this.go('operative', { opId: o.id, from: 'projects' }) }; }),
+        hasOps: p.ops.length > 0, noOps: p.ops.length === 0,
+        kit: p.kit.map(id => { const e = EQUIPMENT.find(x => x.id === id); return { name: e.name, detail: e.check, tone: e.tone, word: e.word, open: () => this.go('unit', { unitId: e.id, from: 'projects' }) }; }),
+        hasKit: p.kit.length > 0, noKit: p.kit.length === 0,
+        dates: [ { k: 'Started on site', v: dLong(p.start) }, { k: p.state === 'live' ? 'Programmed finish' : 'Practical completion', v: dLong(p.finish) }, ...(ret ? [ { k: 'Defects period', v: ret.dlp + ' months' }, { k: 'End of defects period', v: ret.dueLong } ] : [ { k: 'Programme', v: Math.round((new Date(p.finish) - new Date(p.start)) / 604800000) + ' weeks' } ]) ],
+        hasRetention: !!ret, noRetention: !ret, retNote: p.retentionNote || '',
+        retAmount: ret ? ret.amountText + ' held' : '', retMeta: ret ? ret.dueLabel : '', retTone: ret ? ret.tone : 'info', retWord: ret ? ret.statusWord : '',
+        openRetention: () => ret && this.open(ret.id, 'projects'),
+        hasTbts: p.tbts.length > 0, noTbts: p.tbts.length === 0, hasIncidents: p.incidents.length > 0, noIncidents: p.incidents.length === 0,
+        rows: [ { k: 'Main contractor', v: p.contractor }, { k: 'Order', v: p.ref }, { k: 'Order value', v: gbp(p.order) }, { k: 'Site', v: p.address }, { k: 'Site manager', v: p.manager } ],
+        open: () => this.go('project', { pjId: p.id, from: 'projects' }) };
+    });
+    const pj = projects.find(p => p.id === this.state.pjId) || projects[0];
+    const opRaw = OPERATIVES.find(o => o.id === this.state.opId) || OPERATIVES[0];
+    const op = { ...opRaw, hasTraining: (opRaw.training || []).length > 0, noTraining: (opRaw.training || []).length === 0, rows: [ { k: 'Mobile', v: opRaw.phone }, { k: 'Started', v: opRaw.started }, { k: 'NI number', v: opRaw.ni }, { k: 'Emergency contact', v: opRaw.emergency } ] };
+    const pending = pendingAll.map(p => ({ ...p, meta: p.trade + ' · ' + p.when, tone: p.status === 'cards in' ? 'warn' : 'info', word: p.status === 'cards in' ? 'to approve' : 'invited', disabled: p.status !== 'cards in', cursor: p.status === 'cards in' ? 'pointer' : 'default', open: () => this.go('approve', { candId: p.id, from: 'operatives' }) }));
+    const operatives = [...OPERATIVES, ...PENDING.filter(p => approved.includes(p.id)).map(p => ({ id: p.id, name: p.fullName, trade: p.trade, cards: p.cards.map(c => c.name).join(', '), tone: 'ok', word: 'valid' }))].map(o => ({ ...o, cards: o.note ? o.note : o.cards, open: () => OPERATIVES.find(x => x.id === o.id) && this.go('operative', { opId: o.id, from: 'operatives' }) }));
+    const equipment = EQUIPMENT.map(e => ({ ...e, open: () => this.go('unit', { unitId: e.id, from: 'equipment' }) }));
+    const cardKeys = [], cardTitles = {}; let cardOpts = {};
+    const reg = (k, t) => { cardKeys.push(k); cardTitles[k] = t; };
+    const regAll = (pairs) => pairs.forEach(s => { const [k, t] = s.split('|'); reg(k, t); });
+    if (isToday) { regAll(['needs|Needs you', 'money|Money', 'onsite|On site this week', 'expiring|Running out soon', 'activity|What For did']); cardOpts = { hide: false }; }
+    else if (isUnit) regAll(['certs|Certificates and checks', 'details|Details', 'history|Recent checks']);
+    else if (isOperative) regAll(['cards|Cards', 'training|Training', 'details|Details']);
+    else if (isCompany) regAll(['mailbox|Mailbox', 'people|People', 'details|Details']);
+    else if (isProject) regAll(['works|Works', 'onsite|On site', 'dates|Dates', 'retention|Retention', 'hs|Health and safety pack', 'tbt|Toolbox talks', 'incidents|Incidents']);
+    else if (isDetail) regAll(['contract|Project', 'history|What For has sent']);
+    const nextDue = items.find(r => r.status === 'due');
+    const expiring = [
+      ...OPERATIVES.filter(o => o.tone !== 'ok').map(o => ({ name: o.name, detail: o.note || o.cards, tone: o.tone, word: o.word, open: () => this.go('operative', { opId: o.id, from: 'today' }) })),
+      ...EQUIPMENT.filter(e => e.tone !== 'ok').map(e => ({ name: e.name, detail: e.check, tone: e.tone, word: e.word, open: () => this.go('unit', { unitId: e.id, from: 'today' }) }))
+    ].sort((a, b) => (a.tone === 'bad' ? 0 : 1) - (b.tone === 'bad' ? 0 : 1));
+    const nTalk = (a) => a.length + (a.length === 1 ? ' talk' : ' talks');
+    cardOpts.summaries = isToday ? { needs: todayItems.length ? todayItems.length + ' waiting' : 'Nothing waiting', money: gbp(held) + ' held · ' + overdue + ' overdue', onsite: projects.filter(p => p.state === 'live').length + ' live projects', expiring: expiring.length + ' in the next 30 days', activity: '4 actions this week' }
+      : isProject ? { works: pj.works.length + ' items · ' + pj.progressText + ' done', onsite: (pj.ops.length ? pj.ops.length + ' on site' : 'Nobody on site') + (pj.kit.length ? ' · ' + pj.kit.length + ' plant' : ''), dates: pj.finishLabel + ' ' + pj.finishShort, retention: pj.hasRetention ? pj.retAmount + ' · ' + pj.retMeta : (pj.retNote || 'No retention'), hs: pj.hs.length + ' documents', tbt: pj.tbts.length ? nTalk(pj.tbts) : 'None yet', incidents: pj.incidents.length ? pj.incidents.length + ' reported' : 'None reported' }
+      : isOperative ? { cards: op.cardList.length + ' cards', training: op.hasTraining ? op.training.length + ' on record' : 'None yet', details: op.phone } 
+      : isUnit ? { certs: unit.certs.length + ' items', details: unit.rows[0].v, history: unit.history.length + ' checks' }
+      : isCompany ? { mailbox: mailboxOn ? 'Connected' : 'Not connected', people: PEOPLE.length + ' people', details: 'Harlow Groundworks Ltd' }
+      : isDetail ? { contract: sel.contractor + ' · ' + sel.sumText, history: sel.hasHistory ? sel.history.length + ' sent' : 'Nothing sent yet' } : {};
+    const lv = this.layoutVals(screen, cardKeys, cardTitles, cardOpts);
+    const canClaim = isDetail && (sel.status === 'overdue' || sel.status === 'due');
+    const hasAction = canClaim || (isClaim && !drafting) || isSent || isInvite || isInvited || isApprove || isApproved;
+    const menuCurrent = isOperative || isInvite || isInvited || isApprove || isApproved ? 'operatives' : isUnit ? 'equipment' : isProject ? 'projects' : isDetail || isClaim || isSent ? (this.state.from === 'projects' ? 'projects' : 'money') : screen;
+    return {
+      offline,
+      menuItems: ['today', 'projects', 'money', 'operatives', 'equipment'],
+      menuSecondary: ['company'],
+      menuCurrent,
+      menuFooter: ['FORMATTION AI LTD', 'PLATFORM 0.1'],
+      clientLogo: this.props.clientLogo || (dark ? 'assets/lockup-bright.svg' : 'assets/lockup.svg'),
+      onMenu: it => this.go(it, { selId: null, opId: null, from: it }, true),
+      crumb: isProject ? 'project' : isDetail ? 'retention' : isClaim ? 'claim' : isSent ? 'sent' : isOperative ? 'operative' : isUnit ? 'equipment' : isInvite || isInvited ? 'invite' : isApprove || isApproved ? 'approve' : screen,
+      isInvite, isInvited, isApprove, isApproved, inv, cand,
+      hasPending: pendingAll.length > 0,
+      pending: pending, _pending: pendingAll.map(p => ({ ...p, meta: p.trade + ' · ' + p.when, tone: p.status === 'cards in' ? 'warn' : 'info', word: p.status === 'cards in' ? 'to approve' : 'invited', disabled: p.status !== 'cards in', cursor: p.status === 'cards in' ? 'pointer' : 'default', open: () => this.go('approve', { candId: p.id, from: 'operatives' }) })),
+      startInvite: () => this.go('invite', { from: 'operatives' }),
+      onInvName: e => this.setState({ inv: { ...inv, name: e.target.value } }),
+      onInvPhone: e => this.setState({ inv: { ...inv, phone: e.target.value } }),
+      onInvStart: e => this.setState({ inv: { ...inv, start: e.target.value } }),
+      inviteText: 'Hi ' + (inv.name.trim() || 'Tom') + ', Dan at Harlow Groundworks has added you. Tap the link, photograph your cards and you\'re set for ' + (inv.start.trim() || 'your first day') + '. Link works once, for 7 days.',
+      inviteExpiry: new Date(TODAY.getTime() + 7 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      invitedHeadline: 'Sent to ' + inv.name.trim() + ' on ' + inv.phone.trim() + '.',
+      sendInvite: e => { e && e.preventDefault && e.preventDefault(); if (!invValid) return; this.go('invited', { invites: [...invites, { id: 'inv' + Date.now(), name: inv.name.trim(), phone: inv.phone.trim(), trade: 'Trade not given yet', status: 'invited', when: 'Link sent today' }] }); },
+      approve: e => { e && e.preventDefault && e.preventDefault(); this.go('approved', { approved: [...approved, cand.id] }); },
+      goBack: () => this.goBack(),
+      backStyle: { position: 'fixed', bottom: 39, left: 44, width: 44, height: 44, padding: 0, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 400, opacity: (this.state.history || []).length > 0 || !isToday ? 1 : 0, pointerEvents: (this.state.history || []).length > 0 || !isToday ? 'auto' : 'none', transition: 'opacity .25s ease, transform .25s cubic-bezier(.25,.46,.45,.94)' },
+      backIconSize: 23,
+      _backStyleNarrow: { width: 44, height: 52, flexShrink: 0, padding: 0, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: (this.state.history || []).length > 0 || !isToday ? 1 : 0.25, pointerEvents: (this.state.history || []).length > 0 || !isToday ? 'auto' : 'none', transition: 'opacity .25s ease' },
+      scrollTop: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+      upStyle: { position: 'fixed', bottom: this.state.wide ? 39 : 'calc(84px + env(safe-area-inset-bottom, 0px))', right: this.state.wide ? (this.state.chatOpen ? 364 : 100) : 20, width: 44, height: 44, padding: 0, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 800, opacity: this.state.scrolled && this.state.wide ? 1 : 0, pointerEvents: this.state.scrolled && this.state.wide ? 'auto' : 'none', transition: 'opacity .25s ease, transform .25s cubic-bezier(.25,.46,.45,.94)' },
+      upIconSize: 32,
+      isToday, isJobs, isMoney, isOperatives, isCompany, isDetail, isClaim, isSent, isOperative, isEquipment, isProject, projects, pj,
+      equipment,
+      isUnit, unit,
+      equipHeadline: EQUIPMENT.length + ' items, ' + EQUIPMENT.filter(e => e.tone !== 'ok').length + ' need a look.',
+      op, portraitWidth: 120,
+      todayHeadline: todayItems.length ? todayItems.length + ' thing' + (todayItems.length > 1 ? 's' : '') + ' need' + (todayItems.length > 1 ? '' : 's') + ' you.' : 'Nothing needs you today.',
+      todayDate: TODAY.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }),
+      todayItems, todayEmpty: todayItems.length === 0, todayHas: todayItems.length > 0,
+      todayMoney: [ { k: 'Held across ' + items.length + ' jobs', v: gbp(held) }, { k: 'Overdue', v: overdue ? gbp(overdueItems.reduce((s, r) => s + r.amount, 0)) + ' · ' + overdue + ' job' + (overdue > 1 ? 's' : '') : 'Nothing' }, ...(nextDue ? [ { k: 'Next due', v: nextDue.project + ' · ' + nextDue.dueShort } ] : []), { k: 'Claimed, waiting', v: items.filter(r => r.status === 'claimed').length + ' job' + (items.filter(r => r.status === 'claimed').length === 1 ? '' : 's') } ],
+      todayOnsite: projects.filter(p => p.state === 'live').map(p => ({ name: p.name, detail: (p.ops.length ? p.ops.length + ' on site' : 'Nobody on site') + (p.kit.length ? ' · ' + p.kit.length + ' plant' : '') + ' · ' + p.progressText + ' done', tone: p.tone, word: p.word, open: p.open })),
+      todayExpiring: expiring, todayHasExpiring: expiring.length > 0, todayNoExpiring: expiring.length === 0,
+      todayActivity: [ ...(kingsway.status === 'overdue' ? [ { what: 'Drafted the Kingsway depot retention claim for you to check.', when: 'Today' } ] : []), { what: 'Chased Dan again. The Transit has no MOT and is not road legal.', when: '30 Sep' }, { what: 'Reminded Marek Nowak the dumper weekly check is due.', when: '30 Sep' }, { what: 'Read Tom Bailey\'s cards from his photos and checked both numbers with the schemes.', when: '29 Sep' } ],
+      goMoney: () => this.go('money'), goProjects: () => this.go('projects'),
+      jobsHeadline: projects.length + ' projects, ' + projects.filter(p => p.state === 'live').length + ' live, ' + gbp(held) + ' held.',
+      listLoading: listState === 'loading', listEmpty: listState === 'empty', listError: listState === 'error', listPopulated: listState === 'populated',
+      resetState: () => this.forceUpdate(),
+      headline: gbp(held) + ' held across ' + items.length + ' jobs — ' + overdue + ' overdue.',
+      subline: overdue ? 'Overdue first. Tap a job to claim.' : 'Nothing overdue. Tap a job to see the dates.',
+      items, sel,
+      operatives,
+      opsHeadline: (OPERATIVES.length + approved.length) + ' operatives, 1 card expiring.',
+      people: PEOPLE,
+      companyRows: [ { k: 'Trading name', v: 'Harlow Groundworks Ltd' }, { k: 'Company number', v: '09876543' }, { k: 'VAT number', v: 'GB 123 4567 89' }, { k: 'Address', v: 'Unit 4, Cheney Manor, Swindon SN2 2PJ' } ],
+      mailboxAddress: mailboxOn ? 'dan@harlowgroundworks.co.uk' : 'No mailbox connected',
+      mailboxMeta: mailboxOn ? 'Microsoft 365 · last checked 2 minutes ago' : 'Google or Microsoft 365. Takes a minute.',
+      mailboxTone: mailboxOn ? 'ok' : 'bad', mailboxWord: mailboxOn ? 'connected' : 'not connected', mailboxMissing: !mailboxOn,
+      connectMailbox: () => this.setState({ mailbox: true }),
+      drafting, drafted: !drafting, draft, draftRows: 12, onDraft: e => this.setState({ draft: e.target.value }),
+      sentHeadline: 'Sent to ' + sel.contractor + '.',
+      today: dShort(TODAY.toISOString()),
+      hasAction, showSecondary: (isClaim && !drafting) || isApprove,
+      secondaryLabel: isApprove ? 'Ask for a retake' : 'Not yet',
+      primaryLabel: isClaim ? (mailboxOn ? 'Send the claim' : 'Connect mailbox') : isInvite ? 'Send the link' : isApprove ? 'Approve and add' : (isSent || isInvited || isApproved) ? 'Back to ' + (((this.state.history || [])[0] || {}).screen || 'today') : 'Claim now',
+      primaryDisabled: (isClaim && mailboxOn && !draft.trim()) || (isInvite && !invValid),
+      primaryAction: () => {
+        if (isDetail) this.startClaim(sel);
+        else if (isClaim && !mailboxOn) this.go('company', { from: 'company' });
+        else if (isClaim) this.send(sel);
+        else if (isInvite) { if (invValid) this.go('invited', { invites: [...invites, { id: 'inv' + Date.now(), name: inv.name.trim(), phone: inv.phone.trim(), trade: 'Trade not given yet', status: 'invited', when: 'Link sent today' }] }); }
+        else if (isApprove) this.go('approved', { approved: [...approved, cand.id] });
+        else this.goUp();
+      },
+      wideProps: { style: { width: '100%', height: 52, fontSize: 16 } },
+      ask, micSize: 20,
+      wide: this.state.wide, narrow: !this.state.wide,
+      chatPanel: this.state.chatOpen,
+      wideChat: this.state.wide && this.state.chatOpen,
+      showMark: !this.state.chatOpen,
+      markRight: this.state.wide ? '44px' : '20px', markBottom: this.state.wide ? '39px' : 'calc(24px + env(safe-area-inset-bottom, 0px))',
+      chatAsideStyle: this.state.wide
+        ? { position: 'fixed', right: 20, bottom: 20, width: 320, maxHeight: 'calc(100vh - 170px)', background: 'var(--bg2)', borderRadius: 20, display: 'flex', flexDirection: 'column', zIndex: 200, overflow: 'hidden' }
+        : { position: 'fixed', inset: 0, background: 'var(--bg)', display: 'flex', flexDirection: 'column', zIndex: 600, paddingTop: 'calc(' + (this.state.safeTop || 0) + 'px + env(safe-area-inset-top, 0px))' },
+      chatHeadPad: this.state.wide ? '12px 12px 0 0' : '10px 14px 0',
+      chatBoxRadius: this.state.wide ? '12px' : '20px',
+      chatLogPad: this.state.wide ? '0 20px 8px' : '24px 16px 16px',
+      chatBoxMargin: this.state.wide ? '8px' : '8px 12px calc(28px + env(safe-area-inset-bottom, 0px))',
+      chatBoxMinH: this.state.wide ? '100px' : '80px',
+      openChat: () => this.setState({ chatOpen: true }),
+      closeChat: () => this.setState({ chatOpen: false }),
+      closeSize: 16,
+      contentInset: this.state.wide && this.state.chatOpen ? '340px' : '0px',
+      contentInsetLeft: this.state.wide && this.state.chatOpen ? '108px' : '0px',
+      topOffset: this.state.mobile ? 'calc(' + (108 + (this.state.safeTop || 0)) + 'px + env(safe-area-inset-top, 0px))' : '150px',
+      safeTop: this.state.safeTop || 0,
+      mainWidth: (isToday || isUnit || isOperative || isCompany || isProject || isDetail) ? '1120px' : '640px',
+      ...lv,
+      askContext: isProject ? pj.name : isDetail || isClaim ? sel.project : isOperative ? op.name : isUnit ? unit.name : 'Everything on ' + (screen === 'today' ? 'your books' : screen),
+      askPlaceholder: isDetail ? 'Ask For about ' + sel.project : 'Ask For anything, or send a photo',
+      messages: this.state.messages.map(m => ({ ...m, align: m.who === 'You' ? 'flex-end' : 'flex-start', bg: m.who === 'You' ? 'var(--bg3)' : 'transparent', pad: m.who === 'You' ? '10px 14px' : '0' })),
+      noMessages: this.state.messages.length === 0,
+      lastMessage: (this.state.messages[this.state.messages.length - 1] || {}).who === 'For' ? this.state.messages[this.state.messages.length - 1].text : '',
+      onAskChange: e => this.setState({ ask: e.target.value }),
+      onAskKey: e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.target.form && e.target.form.requestSubmit ? e.target.form.requestSubmit() : null; } },
+      sendDisplay: ask.trim() ? 'flex' : 'none',
+      onAsk: e => { e.preventDefault(); if (!ask.trim()) return; this.ask(ask.trim(), isProject ? pj.name : isDetail || isClaim ? sel.project : isOperative ? op.name : isUnit ? unit.name : 'your ' + (screen === 'today' ? 'projects' : screen)); }
+    };
+  }
+}
+</script>
+</body>
+</html>

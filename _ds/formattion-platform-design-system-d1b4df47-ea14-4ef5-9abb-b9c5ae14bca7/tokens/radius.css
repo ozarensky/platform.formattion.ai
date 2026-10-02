@@ -1,0 +1,8 @@
+:root {
+  /* RULE: nested corners are concentric. inner radius + inset = outer radius. */
+  --rx-tag:   6px;    /* tags, nav rows, logo slot */
+  --rx-input: 8px;    /* inputs, icon hit areas */
+  --rx-std:   12px;   /* cards, top bar, menu, tables */
+  --rx-frame: 20px;   /* frames, status cards, rule panels */
+  --rx-pill:  999px;  /* buttons */
+}

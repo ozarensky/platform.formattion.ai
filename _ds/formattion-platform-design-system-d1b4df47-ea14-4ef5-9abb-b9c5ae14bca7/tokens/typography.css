@@ -1,0 +1,18 @@
+:root {
+  /* One family only. No serif, no italic, no monospace. */
+  --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* @kind font */
+  --fs-display: clamp(56px, 9vw, 112px); /* @kind font */  /* guideline covers only */
+  --fs-h2:      44px;   /* 300 */
+  --fs-figure:  40px;   /* 300, tabular */
+  --fs-page:    28px;   /* 500 page title; 300 for stat figures */
+  --fs-menu:    22px;   /* 300, lowercase */
+  --fs-section: 20px;   /* 500 */
+  --fs-body:    15px;   /* 400 */
+  --fs-label:   14px;   /* 500 */
+  --fs-meta:    13px;   /* 400 */
+  --fs-eyebrow: 11px;   /* 300, uppercase +0.14em — section labels only */
+  --fs-micro:   10px;   /* menu footer, +0.1em */
+  --lh-tight: 1.1; /* @kind font */ --lh-title: 1.2; /* @kind font */ --lh-body: 1.6; /* @kind font */ --lh-long: 1.75; /* @kind font */
+  --fw-light: 300; /* @kind font */ --fw-regular: 400; /* @kind font */ --fw-medium: 500; /* @kind font */
+  --ls-title: -0.01em; /* @kind font */ --ls-figure: -0.02em; /* @kind font */ --ls-eyebrow: 0.14em; /* @kind font */
+}

@@ -1,0 +1,11 @@
+:root {
+  --container: 1120px;
+  --gutter: 40px; --gutter-mobile: 20px;
+  --hit: 44px;          /* minimum target */
+  --bar-inset: 10px;    /* 8px inside a 20px frame */
+  --bar-height: 100px;
+  --menu-width: 260px;
+  --inset-6: 6px; --inset-8: 8px; --inset-12: 12px; --inset-14: 14px;
+  --pad-card: 18px; --pad-panel: 28px; --pad-screen: 32px;
+  --gap-xs: 4px; --gap-sm: 12px; --gap-md: 16px; --gap-lg: 32px; --gap-xl: 96px;
+}

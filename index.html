@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>formattion platform</title>
+<link rel="icon" href="assets/mark.svg">
+<link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/colors.css">
+<link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/typography.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; background: var(--bg); }
+  body { font-family: var(--sans, "Helvetica Neue", Helvetica, Arial, sans-serif); font-weight: 300; color: var(--ink-body); font-size: 16px; line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+  a { color: inherit; text-decoration: none; }
+  header { display: flex; justify-content: flex-end; padding: 32px 40px; }
+  header img { height: 20px; width: auto; }
+  .wm-dark { display: var(--wm-dark); }
+  .wm-light { display: var(--wm-light); }
+  main { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 40px 20px 64px; }
+  h1 { font-size: 28px; font-weight: 300; line-height: 1.2; letter-spacing: -.01em; color: var(--ink); margin-bottom: 8px; }
+  .lede { color: var(--ink-body); margin-bottom: 40px; }
+  .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); margin: 32px 0 12px; }
+  ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  li a { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 56px; padding: 14px 20px; background: var(--bg2); color: var(--ink); transition: background .2s cubic-bezier(.4,0,.2,1); }
+  li:first-child a { border-radius: 12px 12px 0 0; }
+  li:last-child a { border-radius: 0 0 12px 12px; }
+  li:only-child a { border-radius: 12px; }
+  li a:hover, li a:focus-visible { background: var(--bg3); outline: none; }
+  li a span:last-child { font-size: 14px; color: var(--muted); text-align: right; }
+  footer { display: flex; justify-content: space-between; gap: 16px; padding: 0 40px 28px; font-size: 10px; letter-spacing: .1em; color: var(--muted); flex-wrap: wrap; }
+  @media (max-width: 768px) {
+    header { padding: 24px 20px; }
+    header img { height: 14px; }
+    main { padding-top: 24px; }
+    footer { padding: 0 20px 24px; }
+  }
+</style>
+<script>
+  try { if (localStorage.getItem('fp-theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+</script>
+</head>
+<body>
+<header>
+  <img class="wm-light" src="assets/lockup.svg" alt="formattion ai">
+  <img class="wm-dark" src="assets/lockup-bright.svg" alt="formattion ai">
+</header>
+
+<main>
+  <h1>Platform design reference</h1>
+  <p class="lede">High-fidelity screens for the subcontractor app. Mock data throughout.</p>
+
+  <p class="eyebrow">Entry</p>
+  <ul>
+    <li><a href="Landing%20Page.dc.html"><span>Log in</span><span>one-time code</span></a></li>
+    <li><a href="Platform.dc.html"><span>Platform</span><span>all screens</span></a></li>
+    <li><a href="Mobile%20Preview.dc.html"><span>Mobile preview</span><span>phone canvas</span></a></li>
+  </ul>
+
+  <p class="eyebrow">Screens</p>
+  <ul>
+    <li><a href="Platform.dc.html?screen=today"><span>Today</span><span>dashboard</span></a></li>
+    <li><a href="Platform.dc.html?screen=money"><span>Money</span><span>retentions</span></a></li>
+    <li><a href="Platform.dc.html?screen=projects"><span>Projects</span><span>list</span></a></li>
+    <li><a href="Platform.dc.html?screen=operatives"><span>Operatives</span><span>onboarding</span></a></li>
+    <li><a href="Platform.dc.html?screen=equipment"><span>Equipment</span><span>plant</span></a></li>
+    <li><a href="Platform.dc.html?screen=company"><span>Company</span><span>settings</span></a></li>
+  </ul>
+</main>
+
+<footer>
+  <span>FORMATTION AI LTD</span>
+  <span>PLATFORM 0.1</span>
+</footer>
+</body>
+</html>
