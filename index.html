@@ -138,11 +138,7 @@ class Component extends DCLogic {
       resendLabel: cooldown > 0 ? 'Send again in ' + cooldown + 's' : 'Send again',
       resendDisabled: busy || cooldown > 0,
       onContact: e => this.setState({ contact: e.target.value, error: '' }),
-      onCode: e => {
-        const next = e.target.value.replace(/\D/g, '').slice(0, 6);
-        this.setState({ code: next, error: '' });
-        if (next.length === 6) this.verify(next);
-      },
+      onCode: e => this.setState({ code: e.target.value.replace(/\D/g, '').slice(0, 6), error: '' }),
       onChangeContact: () => { clearInterval(this.timer); this.setState({ step: 'contact', code: '', error: '', cooldown: 0 }); },
       onResend: () => { if (!busy && cooldown === 0) this.send(); },
       onSubmit: e => {
