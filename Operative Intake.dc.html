@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="icon" href="assets/mark.svg">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/radius.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/effects.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/tokens/base.css">
+  <link rel="stylesheet" href="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/styles.css">
+  <script src="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/_ds_bundle.js"></script>
+  <style>
+    html, body { min-height: 100%; margin: 0; background: var(--bg); }
+    a { color: var(--ink); text-decoration: none; } a:hover { opacity: .45; }
+    input, button, textarea { font-family: inherit; }
+    input[type="date"] { color-scheme: light; }
+  </style>
+  <script src="assets/scroll-pill.js"></script>
+</helmet>
+<div style="min-height:100vh;background:var(--bg);font-family:var(--sans);color:var(--ink-body);display:flex;flex-direction:column">
+
+  <header style="position:fixed;top:10px;left:10px;right:10px;height:52px;border-radius:12px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:50;max-width:480px;margin:0 auto">
+    <span style="font-size:14px;font-weight:500;color:var(--ink)">{{ subcontractor }}</span>
+    <span style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums">{{ stepLabel }}</span>
+  </header>
+  <div style="position:fixed;top:66px;left:26px;right:26px;height:6px;z-index:50;max-width:448px;margin:0 auto;display:{{ progressDisplay }}"><div style="height:6px;border-radius:999px;background:var(--ink);width:{{ progressWidth }};transition:width .3s cubic-bezier(.4,0,.2,1)"></div></div>
+
+  <main style="flex:1;width:100%;max-width:480px;margin:0 auto;padding:96px 20px 140px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+
+    <!-- 0 welcome -->
+    <sc-if value="{{ s0 }}" hint-placeholder-val="{{ true }}">
+      <section data-screen-label="Welcome" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ welcomeTitle }}</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">{{ contact }} has added you to the team. Before your first day we need your cards and a few details. It takes about two minutes.</p>
+        </div>
+        <div style="background:var(--bg2);border-radius:20px;padding:8px">
+          <ol style="list-style:none;margin:0;padding:0;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+            <sc-for list="{{ outline }}" as="o" hint-placeholder-count="6">
+              <li style="display:flex;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--dim);align-items:center"><span style="font-size:15px;color:var(--ink)">{{ o.name }}</span><span style="font-size:13px;color:var(--muted);text-align:right">{{ o.need }}</span></li>
+            </sc-for>
+          </ol>
+        </div>
+        <p style="font-size:14px;line-height:1.6;color:var(--muted);text-wrap:pretty;padding:0 16px">Saved as you go. Close this and come back with the same link any time before {{ expiry }}. Only {{ subcontractor }} sees what you send.</p>
+        <sc-if value="{{ resumed }}" hint-placeholder-val="{{ false }}"><p style="font-size:15px;line-height:1.5;color:var(--ink);border:1px dashed var(--dash);border-radius:12px;padding:14px 16px;text-wrap:pretty">Welcome back. We kept what you filled in last time.</p></sc-if>
+      </section>
+    </sc-if>
+
+    <!-- 1 cards -->
+    <sc-if value="{{ s1 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Your cards" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Your cards</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">Photograph the front of each card you hold. CSCS, CPCS, IPAF, Streetworks, first aid. For reads the number and date so you don't type them.</p>
+        </div>
+        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+          <sc-if value="{{ hasCards }}" hint-placeholder-val="{{ false }}">
+            <ul style="list-style:none;margin:0;padding:0;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+              <sc-for list="{{ cards }}" as="c" hint-placeholder-count="0">
+                <li style="display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:4px 14px;align-items:center;padding:6px 12px 6px 6px;border-bottom:1px solid var(--dim)">
+                  <span role="img" aria-label="Card photo" style="width:60px;height:44px;border-radius:6px;background:var(--bg3) center/cover no-repeat;background-image:{{ c.bg }}"></span>
+                  <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ c.name }}</span><span style="font-size:13px;color:var(--muted)">{{ c.detail }}</span></span>
+                  <span style="display:flex;align-items:center;gap:8px"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ c.tone }}" hint-size="70px,26px">{{ c.word }}</x-import><button type="button" onClick="{{ c.remove }}" aria-label="Remove card" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="x" size="16" hint-size="16px,16px"></x-import></button></span>
+                </li>
+              </sc-for>
+            </ul>
+          </sc-if>
+          <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px;border:1px dashed var(--dash);border-radius:12px;cursor:pointer;color:var(--ink);text-align:center;padding:16px" style-hover="border-color:var(--ink)">
+            <input type="file" accept="image/*" capture="environment" onChange="{{ onCardFile }}" style="display:none">
+            <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><svg width="40" height="40" style="display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="currentColor"><path d="M250,192.59h0c-37.28,0-67.5,30.22-67.5,67.5h0c0,37.28,30.22,67.5,67.5,67.5h0c37.28,0,67.5-30.22,67.5-67.5h0c0-37.28-30.22-67.5-67.5-67.5ZM304.48,260.09c0,30.1-24.4,54.5-54.5,54.5h0c-30.1,0-54.5-24.4-54.5-54.5h0c0-30.1,24.4-54.5,54.5-54.5h0c30.1,0,54.5,24.4,54.5,54.5h0Z"></path><path d="M357,172.25h-39.5c-5.52,0-10-4.48-10-10v-8.5c0-14.36-11.64-26-26-26h-63c-14.36,0-26,11.64-26,26v8.5c0,5.52-4.48,10-10,10h-39.5c-23.75,0-43,19.25-43,43v114c0,23.75,19.25,43,43,43h214c23.75,0,43-19.25,43-43v-114c0-23.75-19.25-43-43-43ZM387,329.25c0,16.57-13.43,30-30,30h-214c-16.57,0-30-13.43-30-30v-114c0-16.57,13.43-30,30-30h39.5c12.7,0,23-10.3,23-23v-8.5c0-7.18,5.82-13,13-13h63c7.18,0,13,5.82,13,13v8.5c0,12.7,10.3,23,23,23h39.5c16.57,0,30,13.43,30,30v114Z"></path></svg></span>
+            <span style="font-size:15px;font-weight:500">{{ addCardLabel }}</span>
+            <span style="font-size:13px;color:var(--muted)">Opens your camera. Front of the card, flat, in good light.</span>
+          </label>
+        </div>
+        <p style="font-size:14px;line-height:1.6;color:var(--muted);text-wrap:pretty;padding:0 16px">No cards yet? Tap Next. {{ contact }} can sort them with you on your first day.</p>
+      </section>
+    </sc-if>
+
+    <!-- 2 about you -->
+    <sc-if value="{{ s2 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="About you" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">About you</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">As it appears on your cards.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Full name" placeholder="Thomas Bailey" value="{{ d.fullName }}" on-change="{{ set.fullName }}" hint-size="100%,72px"></x-import>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end">
+              <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Date of birth" type="tel" placeholder="dd/mm/yyyy" value="{{ dobTyped }}" on-change="{{ onDobTyped }}" hint-size="100%,72px"></x-import>
+              <button type="button" onClick="{{ toggleCal }}" style="background:none;border:none;padding:0 4px;min-height:44px;margin-bottom:2px;font-size:14px;color:var(--muted);cursor:pointer;white-space:nowrap" style-hover="color:var(--ink)">{{ calLabel }}</button>
+            </div>
+            <sc-if value="{{ calOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+                <div style="background:var(--work);border-radius:12px;padding:4px 4px 8px;display:flex;flex-direction:column;gap:4px">
+                  <div style="display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center">
+                    <button type="button" onClick="{{ calPrevYear }}" aria-label="Previous year" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(-5px)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></button>
+                    <span style="text-align:center;font-size:15px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums">{{ calYear }}</span>
+                    <button type="button" onClick="{{ calNextYear }}" aria-label="Next year" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(5px)"><span style="display:flex;transform:rotate(180deg)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></span></button>
+                  </div>
+                  <div style="display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center">
+                    <button type="button" onClick="{{ calPrevMonth }}" aria-label="Previous month" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(-5px)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></button>
+                    <span style="text-align:center;font-size:15px;color:var(--ink)">{{ calMonth }}</span>
+                    <button type="button" onClick="{{ calNextMonth }}" aria-label="Next month" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(5px)"><span style="display:flex;transform:rotate(180deg)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></span></button>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));padding:0 4px">
+                    <sc-for list="{{ calDays }}" as="wd" hint-placeholder-count="7"><span style="text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:6px 0">{{ wd }}</span></sc-for>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;padding:0 4px">
+                    <sc-for list="{{ calCells }}" as="c" hint-placeholder-count="35"><button type="button" onClick="{{ c.pick }}" style="height:40px;border-radius:999px;border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.color }};opacity:{{ c.opacity }};font-size:15px;font-variant-numeric:tabular-nums;cursor:pointer;padding:0" style-hover="background:var(--bg3)">{{ c.n }}</button></sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:0 12px 4px"><button type="button" onClick="{{ calClear }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)">Clear</button><button type="button" onClick="{{ toggleCal }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--ink);cursor:pointer" style-hover="opacity:.45">Done</button></div>
+              </div>
+            </sc-if>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:14px;font-weight:500;color:var(--ink)">Your trade</span>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ trades }}" as="t" hint-placeholder-count="6">
+                <button type="button" onClick="{{ t.pick }}" style="min-height:44px;padding:0 18px;border-radius:999px;border:1px solid {{ t.border }};background:{{ t.bg }};color:{{ t.color }};font-size:15px;cursor:pointer">{{ t.name }}</button>
+              </sc-for>
+            </div>
+            <sc-if value="{{ otherTrade }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="What do you do?" placeholder="e.g. Pipelayer" value="{{ d.tradeOther }}" on-change="{{ set.tradeOther }}" hint-size="100%,72px"></x-import></sc-if>
+          </div>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Home address" placeholder="12 Mill Lane, Swindon SN1 4AB" value="{{ d.address }}" on-change="{{ set.address }}" hint="Where your payslips and letters go." hint-size="100%,96px"></x-import>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- 3 right to work -->
+    <sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Right to work" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Right to work</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">The law says {{ subcontractor }} has to check this before you start. Pick what you have.</p>
+        </div>
+        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+          <ul style="list-style:none;margin:0;padding:0;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+            <sc-for list="{{ rtwOptions }}" as="r" hint-placeholder-count="3">
+              <li style="border-bottom:1px solid var(--dim)"><button type="button" onClick="{{ r.pick }}" aria-pressed="{{ r.on }}" style="width:100%;text-align:left;background:{{ r.bg }};border:none;padding:12px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;color:var(--ink);min-height:56px" style-hover="background:var(--bg3)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ r.name }}</span><span style="font-size:13px;color:var(--muted);text-wrap:pretty">{{ r.detail }}</span></span><span style="width:20px;height:20px;border-radius:999px;border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:10px;height:10px;border-radius:999px;background:var(--ink);display:{{ r.dotDisplay }}"></span></span></button></li>
+            </sc-for>
+          </ul>
+          <sc-if value="{{ rtwNeedsPhoto }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ hasRtwPhoto }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--work);border-radius:12px;padding:6px 12px 6px 6px;display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:14px;align-items:center"><span role="img" aria-label="Document photo" style="width:60px;height:44px;border-radius:6px;background:var(--bg3) center/cover no-repeat;background-image:{{ rtwBg }}"></span><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;color:var(--ink)">{{ rtwPhotoName }}</span><span style="font-size:13px;color:var(--muted)">Photo added</span></span><button type="button" onClick="{{ clearRtwPhoto }}" aria-label="Remove photo" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="x" size="16" hint-size="16px,16px"></x-import></button></div>
+            </sc-if>
+            <sc-if value="{{ noRtwPhoto }}" hint-placeholder-val="{{ true }}">
+              <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px;border:1px dashed var(--dash);border-radius:12px;cursor:pointer;color:var(--ink);text-align:center;padding:16px" style-hover="border-color:var(--ink)">
+                <input type="file" accept="image/*" capture="environment" onChange="{{ onRtwFile }}" style="display:none">
+                <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><svg width="40" height="40" style="display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="currentColor"><path d="M250,192.59h0c-37.28,0-67.5,30.22-67.5,67.5h0c0,37.28,30.22,67.5,67.5,67.5h0c37.28,0,67.5-30.22,67.5-67.5h0c0-37.28-30.22-67.5-67.5-67.5ZM304.48,260.09c0,30.1-24.4,54.5-54.5,54.5h0c-30.1,0-54.5-24.4-54.5-54.5h0c0-30.1,24.4-54.5,54.5-54.5h0c30.1,0,54.5,24.4,54.5,54.5h0Z"></path><path d="M357,172.25h-39.5c-5.52,0-10-4.48-10-10v-8.5c0-14.36-11.64-26-26-26h-63c-14.36,0-26,11.64-26,26v8.5c0,5.52-4.48,10-10,10h-39.5c-23.75,0-43,19.25-43,43v114c0,23.75,19.25,43,43,43h214c23.75,0,43-19.25,43-43v-114c0-23.75-19.25-43-43-43ZM387,329.25c0,16.57-13.43,30-30,30h-214c-16.57,0-30-13.43-30-30v-114c0-16.57,13.43-30,30-30h39.5c12.7,0,23-10.3,23-23v-8.5c0-7.18,5.82-13,13-13h63c7.18,0,13,5.82,13,13v8.5c0,12.7,10.3,23,23,23h39.5c16.57,0,30,13.43,30,30v114Z"></path></svg></span>
+                <span style="font-size:15px;font-weight:500">Photograph your {{ rtwPhotoName }}</span>
+                <span style="font-size:13px;color:var(--muted)">{{ rtwPhotoHint }}</span>
+              </label>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{ rtwNeedsCode }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:8px 8px 4px"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Share code" placeholder="W1A 2BC 3DE" value="{{ d.shareCode }}" on-change="{{ set.shareCode }}" hint="From gov.uk/prove-right-to-work. Nine letters and numbers, lasts 90 days." hint-size="100%,96px"></x-import></div>
+          </sc-if>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- 4 pay -->
+    <sc-if value="{{ s4 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Getting paid" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Getting paid</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">Where your wages go. Only {{ contact }} and the accounts team see this.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="National Insurance number" placeholder="QQ 12 34 56 C" value="{{ d.ni }}" on-change="{{ set.ni }}" hint="On your payslip, P60 or the letter from HMRC." hint-size="100%,96px"></x-import>
+          <div style="display:flex;flex-direction:column;gap:4px;padding-top:8px">
+            <h2 style="font-size:20px;font-weight:500;color:var(--ink)">Your bank account</h2>
+            <p style="font-size:14px;line-height:1.6;color:var(--muted);text-wrap:pretty">The account your wages should go into. All three are on your bank card or in your banking app.</p>
+          </div>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Name on the bank account" placeholder="Thomas Bailey" value="{{ d.accountName }}" on-change="{{ set.accountName }}" hint="Usually your own name, exactly as the bank has it." hint-size="100%,96px"></x-import>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px">
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Sort code" type="tel" placeholder="12-34-56" value="{{ d.sortCode }}" on-change="{{ set.sortCode }}" hint="6 digits" hint-size="100%,96px"></x-import>
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Account number" type="tel" placeholder="12345678" value="{{ d.account }}" on-change="{{ set.account }}" hint="8 digits" hint-size="100%,96px"></x-import>
+          </div>
+        </div>
+        <p style="font-size:14px;line-height:1.6;color:var(--muted);text-wrap:pretty;padding:0 16px">Haven't got your bank card to hand? Skip this and {{ contact }} will ask on your first day.</p>
+      </section>
+    </sc-if>
+
+    <!-- 5 emergency -->
+    <sc-if value="{{ s5 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Emergency contact" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">If something happens on site</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">Who should we call?</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Their name" placeholder="Claire Bailey" value="{{ d.ecName }}" on-change="{{ set.ecName }}" hint-size="100%,72px"></x-import>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Who they are to you" placeholder="Partner, parent, friend" value="{{ d.ecRel }}" on-change="{{ set.ecRel }}" hint-size="100%,72px"></x-import>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Their mobile" type="tel" placeholder="07700 900859" value="{{ d.ecPhone }}" on-change="{{ set.ecPhone }}" hint-size="100%,72px"></x-import>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- 6 photo -->
+    <sc-if value="{{ s6 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Your photo" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">A photo of you</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">For the site register, so the gate knows who you are. Head and shoulders, no hat or glasses.</p>
+        </div>
+        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px;align-items:center;width:fit-content;margin:0 auto">
+          <sc-if value="{{ hasSelfie }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:center;padding:0"><span role="img" aria-label="Your photo" style="width:240px;aspect-ratio:3/4;display:block;border-radius:12px;background:var(--bg3) center/cover no-repeat;background-image:{{ selfieBg }}"></span><button type="button" onClick="{{ clearSelfie }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)">Take another</button></div>
+          </sc-if>
+          <sc-if value="{{ noSelfie }}" hint-placeholder-val="{{ true }}">
+            <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:240px;aspect-ratio:3/4;border:1px dashed var(--dash);border-radius:12px;cursor:pointer;color:var(--ink);text-align:center;padding:16px;box-sizing:border-box" style-hover="border-color:var(--ink)">
+              <input type="file" accept="image/*" capture="user" onChange="{{ onSelfieFile }}" style="display:none">
+              <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><svg width="40" height="40" style="display:block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="currentColor"><path d="M250,192.59h0c-37.28,0-67.5,30.22-67.5,67.5h0c0,37.28,30.22,67.5,67.5,67.5h0c37.28,0,67.5-30.22,67.5-67.5h0c0-37.28-30.22-67.5-67.5-67.5ZM304.48,260.09c0,30.1-24.4,54.5-54.5,54.5h0c-30.1,0-54.5-24.4-54.5-54.5h0c0-30.1,24.4-54.5,54.5-54.5h0c30.1,0,54.5,24.4,54.5,54.5h0Z"></path><path d="M357,172.25h-39.5c-5.52,0-10-4.48-10-10v-8.5c0-14.36-11.64-26-26-26h-63c-14.36,0-26,11.64-26,26v8.5c0,5.52-4.48,10-10,10h-39.5c-23.75,0-43,19.25-43,43v114c0,23.75,19.25,43,43,43h214c23.75,0,43-19.25,43-43v-114c0-23.75-19.25-43-43-43ZM387,329.25c0,16.57-13.43,30-30,30h-214c-16.57,0-30-13.43-30-30v-114c0-16.57,13.43-30,30-30h39.5c12.7,0,23-10.3,23-23v-8.5c0-7.18,5.82-13,13-13h63c7.18,0,13,5.82,13,13v8.5c0,12.7,10.3,23,23,23h39.5c16.57,0,30,13.43,30,30v114Z"></path></svg></span>
+              <span style="font-size:15px;font-weight:500">Take your photo</span>
+              <span style="font-size:13px;color:var(--muted)">Opens the front camera</span>
+            </label>
+          </sc-if>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- 7 check and sign -->
+    <sc-if value="{{ s7 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Check and sign" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Check and sign</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">Have a look, then sign below to say it's right.</p>
+        </div>
+        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ review }}" as="g" hint-placeholder-count="6">
+            <div style="background:var(--work);border-radius:12px;overflow:hidden">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 8px 0 16px"><span style="font-size:14px;font-weight:500;color:var(--ink)">{{ g.title }}</span><button type="button" onClick="{{ g.edit }}" style="background:none;border:none;padding:0 8px;min-height:40px;font-size:14px;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)">Change</button></div>
+              <dl style="margin:0;display:flex;flex-direction:column">
+                <sc-for list="{{ g.rows }}" as="row" hint-placeholder-count="2">
+                  <div style="display:flex;justify-content:space-between;gap:16px;padding:8px 16px 10px"><dt style="font-size:13px;color:var(--muted);flex-shrink:0">{{ row.k }}</dt><dd style="margin:0;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;overflow-wrap:anywhere">{{ row.v }}</dd></div>
+                </sc-for>
+              </dl>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 8px 0 16px"><span style="font-size:14px;font-weight:500;color:var(--ink)">Sign with your finger</span><button type="button" onClick="{{ clearSig }}" style="background:none;border:none;padding:0 8px;min-height:40px;font-size:14px;color:var(--muted);cursor:pointer;display:{{ clearSigDisplay }}" style-hover="color:var(--ink)">Clear</button></div>
+          <canvas ref="{{ sigRef }}" onPointerDown="{{ sigDown }}" onPointerMove="{{ sigMove }}" onPointerUp="{{ sigUp }}" onPointerLeave="{{ sigUp }}" style="width:100%;height:160px;display:block;background:#FFFFFF;border-radius:12px;touch-action:none;cursor:crosshair"></canvas>
+          <p style="font-size:13px;line-height:1.5;color:var(--muted);text-wrap:pretty;padding:4px 16px 8px">By signing you confirm these details are true and that {{ subcontractor }} may hold them for your employment.</p>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- 8 done -->
+    <sc-if value="{{ s8 }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Sent" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">Sent to {{ contact }}.</h1>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">{{ doneBody }}</p>
+        </div>
+        <div style="background:var(--bg2);border-radius:20px;padding:8px">
+          <dl style="margin:0;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
+            <sc-for list="{{ doneRows }}" as="row" hint-placeholder-count="3">
+              <div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;border-bottom:1px solid var(--dim)"><dt style="font-size:13px;color:var(--muted)">{{ row.k }}</dt><dd style="margin:0;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ row.v }}</dd></div>
+            </sc-for>
+          </dl>
+        </div>
+        <p style="font-size:14px;line-height:1.6;color:var(--muted);text-wrap:pretty;padding:0 16px">This link has now closed. You can shut this page.</p>
+        <div style="padding:0 16px"><button type="button" onClick="{{ startAgain }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)">Start again (preview only)</button></div>
+      </section>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{ showBar }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;pointer-events:none;background:linear-gradient(to bottom, rgba(244,239,230,0), var(--bg) 32px)">
+      <div style="width:100%;max-width:480px;padding:32px 20px calc(20px + env(safe-area-inset-bottom, 0px));box-sizing:border-box;display:flex;gap:8px;align-items:center;pointer-events:auto">
+        <sc-if value="{{ showBack }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ back }}" aria-label="{{ backLabel }}" style="flex-shrink:0;width:52px;height:52px;padding:0;border:none;background:none;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(-5px)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="23" hint-size="23px,23px"></x-import></button></sc-if>
+        <div style="flex:1;min-width:0"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="primary" on-click="{{ next }}" disabled="{{ nextDisabled }}" dc-props="{{ wideProps }}" hint-size="100%,52px">{{ nextLabel }}</x-import></div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 402, &quot;height&quot;: 874}, &quot;subcontractor&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Harlow Groundworks&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;contact&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Dan&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;firstName&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Tom&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startDate&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Monday 5 October&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startStep&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 0, &quot;min&quot;: 0, &quot;max&quot;: 8, &quot;step&quot;: 1, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Preview&quot;}}">
+const KEY = 'intake:demo';
+const TRADES = ['Groundworker', 'Excavator operator', 'Dumper driver', 'Pipelayer', 'Labourer', 'Banksman', 'Something else'];
+const READS = [
+  { name: 'CSCS Green', detail: 'No. 01234567 · to 18 Feb 2029', tone: 'ok', word: 'valid' },
+  { name: 'NRSWA Streetworks', detail: 'No. 55 8821 · to 2 Dec 2026', tone: 'warn', word: 'expiring' },
+  { name: 'IPAF 3a/3b', detail: 'No. 8812 0093 · to 9 May 2028', tone: 'ok', word: 'valid' },
+  { name: 'First aid at work', detail: 'St John · to 14 Jan 2028', tone: 'ok', word: 'valid' }
+];
+const RTW = [
+  { id: 'passport', name: 'UK or Irish passport', detail: 'Photograph the photo page', photo: 'passport photo page', hint: 'The page with your photo, flat and in focus.' },
+  { id: 'code', name: 'Share code', detail: 'From gov.uk, for visa and settled status holders', photo: null },
+  { id: 'brp', name: 'Biometric residence permit', detail: 'Photograph the front', photo: 'residence permit', hint: 'Front of the card, flat, in good light.' },
+  { id: 'none', name: 'I\'ll bring documents on my first day', detail: 'Birth certificate and proof of NI number', photo: null }
+];
+const EMPTY = { fullName: '', dob: '', trade: '', tradeOther: '', address: '', rtw: '', rtwPhoto: '', shareCode: '', ni: '', accountName: '', sortCode: '', account: '', ecName: '', ecRel: '', ecPhone: '', selfie: '', signed: false };
+class Component extends DCLogic {
+  state = { step: 0, d: { ...EMPTY }, cards: [], resumed: false, calOpen: false, calY: 1990, calM: 0, dobTyped: null };
+  sigRef = React.createRef();
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) { const s = JSON.parse(raw); this.setState({ step: s.step || 0, d: { ...EMPTY, ...s.d }, cards: (s.cards || []).map(c => ({ ...c, reading: false })), resumed: (s.step || 0) > 0 && s.step < 8 }); return; }
+    } catch (e) {}
+    const st = this.props.startStep; if (st != null && st > 0) this.setState({ step: Number(st) });
+  }
+  save(extra) { this.setState(extra, () => { try { const { step, d, cards } = this.state; localStorage.setItem(KEY, JSON.stringify({ step, d: { ...d, selfie: d.selfie ? 'kept' : '', rtwPhoto: d.rtwPhoto ? 'kept' : '' }, cards: cards.map(c => ({ ...c, src: '' })) })); } catch (e) {} }); }
+  setD(k, v) { this.save({ d: { ...this.state.d, [k]: v } }); }
+  goStep(step) { this.save({ step }); window.scrollTo(0, 0); }
+  readFile(e, cb) { const f = e.target.files && e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => cb(r.result); r.readAsDataURL(f); e.target.value = ''; }
+  sigCtx() { const c = this.sigRef.current; if (!c) return null; if (!c._sized) { const r = c.getBoundingClientRect(); c.width = r.width * 2; c.height = r.height * 2; const x = c.getContext('2d'); x.scale(2, 2); x.lineWidth = 2; x.lineCap = 'round'; x.lineJoin = 'round'; x.strokeStyle = '#000'; c._sized = true; } return c.getContext('2d'); }
+  pt(e) { const r = this.sigRef.current.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+  renderVals() {
+    const { step, d, cards } = this.state;
+    const sub = this.props.subcontractor || 'Harlow Groundworks', contact = this.props.contact || 'Dan', first = this.props.firstName || 'Tom', start = this.props.startDate || 'Monday 5 October';
+    const set = {}; Object.keys(EMPTY).forEach(k => { set[k] = e => this.setD(k, e && e.target ? e.target.value : e); });
+    const s = {}; for (let i = 0; i <= 8; i++) s['s' + i] = step === i;
+    const rtw = RTW.find(r => r.id === d.rtw);
+    const tradeText = d.trade === 'Something else' ? (d.tradeOther || 'Not given') : (d.trade || 'Not given');
+    const dobText = d.dob ? new Date(d.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not given';
+    const or = (v) => v || 'Not given';
+    const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const pad = n => String(n).padStart(2, '0');
+    const dobTyped = this.state.dobTyped != null ? this.state.dobTyped : (d.dob ? d.dob.slice(8, 10) + '/' + d.dob.slice(5, 7) + '/' + d.dob.slice(0, 4) : '');
+    const { calY, calM } = this.state;
+    const firstOfMonth = new Date(calY, calM, 1); const lead = (firstOfMonth.getDay() + 6) % 7; const dim = new Date(calY, calM + 1, 0).getDate(); const dimPrev = new Date(calY, calM, 0).getDate();
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const calCells = []; for (let i = 0; i < 42; i++) { const off = i - lead; let y = calY, m = calM, n; if (off < 0) { n = dimPrev + off + 1; m = calM - 1; if (m < 0) { m = 11; y--; } } else if (off >= dim) { n = off - dim + 1; m = calM + 1; if (m > 11) { m = 0; y++; } } else n = off + 1; const iso = y + '-' + pad(m + 1) + '-' + pad(n); const sel = iso === d.dob; const inMonth = off >= 0 && off < dim; calCells.push({ n, border: iso === todayIso && !sel ? 'var(--line)' : 'transparent', bg: sel ? 'var(--ink)' : 'transparent', color: sel ? 'var(--bg)' : 'var(--ink)', opacity: inMonth ? 1 : .35, pick: () => this.save({ d: { ...this.state.d, dob: iso }, dobTyped: null, calY: y, calM: m }) }); }
+    if (calCells.slice(35).every(c => c.opacity < 1)) calCells.length = 35;
+    const reading = cards.some(c => c.reading);
+    const canNext = step === 2 ? d.fullName.trim().length > 1 && !!d.trade : step === 3 ? !!d.rtw && (!rtw || !rtw.photo || !!d.rtwPhoto) && (d.rtw !== 'code' || d.shareCode.trim().length >= 9) : step === 5 ? d.ecName.trim().length > 1 && d.ecPhone.replace(/\D/g, '').length >= 10 : step === 7 ? d.signed : step === 1 ? !reading : true;
+    const total = 7;
+    const labels = ['', 'Your cards', 'About you', 'Right to work', 'Getting paid', 'Emergency contact', 'Your photo', 'Check and sign'];
+    return {
+      subcontractor: sub, contact, ...s,
+      welcomeTitle: 'Hi ' + first + ', welcome to ' + sub + '.',
+      stepLabel: step === 0 ? 'About 2 minutes' : step === 8 ? 'Done' : step + ' of ' + total,
+      progressDisplay: step > 0 && step < 8 ? 'block' : 'none', progressWidth: Math.round((step / total) * 100) + '%',
+      expiry: new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }),
+      resumed: this.state.resumed && step === 0,
+      outline: [ { name: 'Your cards', need: 'Photos' }, { name: 'About you', need: 'Name, trade, address' }, { name: 'Right to work', need: 'Passport or share code' }, { name: 'Getting paid', need: 'NI and bank' }, { name: 'Emergency contact', need: 'One person' }, { name: 'Your photo', need: 'For the site register' } ],
+      d, set,
+      dobTyped, onDobTyped: e => { const v = e.target.value; const m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if (m) { const iso = m[3] + '-' + pad(m[2]) + '-' + pad(m[1]); const dt = new Date(iso); if (!isNaN(dt) && dt.getDate() === +m[1]) { this.save({ d: { ...this.state.d, dob: iso }, dobTyped: null, calY: +m[3], calM: +m[2] - 1 }); return; } } this.setState({ dobTyped: v }); },
+      calOpen: this.state.calOpen, calLabel: this.state.calOpen ? 'Hide calendar' : 'Pick a date',
+      toggleCal: () => { const o = !this.state.calOpen; const ex = {}; if (o && d.dob) { ex.calY = +d.dob.slice(0, 4); ex.calM = +d.dob.slice(5, 7) - 1; } this.setState({ calOpen: o, ...ex }); },
+      calYear: String(calY), calMonth: MONTHS[calM], calDays: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'], calCells,
+      calPrevYear: () => this.setState({ calY: calY - 1 }), calNextYear: () => this.setState({ calY: calY + 1 }),
+      calPrevMonth: () => this.setState(calM === 0 ? { calM: 11, calY: calY - 1 } : { calM: calM - 1 }), calNextMonth: () => this.setState(calM === 11 ? { calM: 0, calY: calY + 1 } : { calM: calM + 1 }),
+      calClear: () => this.save({ d: { ...this.state.d, dob: '' }, dobTyped: null }),
+      cards: cards.map(c => ({ ...c, bg: c.src ? 'url(' + c.src + ')' : 'none', name: c.reading ? 'Reading the card' : c.name, detail: c.reading ? 'For is picking out the number and date' : c.detail, tone: c.reading ? 'info' : c.tone, word: c.reading ? 'reading' : c.word, remove: () => this.save({ cards: this.state.cards.filter(x => x.id !== c.id) }) })),
+      hasCards: cards.length > 0, addCardLabel: cards.length ? 'Add another card' : 'Photograph a card',
+      onCardFile: e => this.readFile(e, src => { const id = 'c' + Date.now(); const n = this.state.cards.length; this.save({ cards: [...this.state.cards, { id, src, reading: true }] }); setTimeout(() => this.save({ cards: this.state.cards.map(c => c.id === id ? { ...c, reading: false, ...READS[n % READS.length] } : c) }), 1400); }),
+      trades: TRADES.map(t => { const on = d.trade === t; return { name: t, pick: () => this.setD('trade', t), border: on ? 'var(--ink)' : 'var(--line)', bg: on ? 'var(--ink)' : 'transparent', color: on ? 'var(--bg)' : 'var(--ink)' }; }),
+      otherTrade: d.trade === 'Something else',
+      rtwOptions: RTW.map(r => { const on = d.rtw === r.id; return { ...r, on, pick: () => this.save({ d: { ...d, rtw: r.id, rtwPhoto: '', shareCode: '' } }), bg: on ? 'var(--bg3)' : 'transparent', dotDisplay: on ? 'block' : 'none' }; }),
+      rtwNeedsPhoto: !!(rtw && rtw.photo), rtwNeedsCode: d.rtw === 'code', hasRtwPhoto: !!d.rtwPhoto, noRtwPhoto: !d.rtwPhoto,
+      rtwPhotoName: rtw && rtw.photo ? rtw.photo : '', rtwPhotoHint: rtw && rtw.hint ? rtw.hint : '',
+      onRtwFile: e => this.readFile(e, src => this.setD('rtwPhoto', src)), clearRtwPhoto: () => this.setD('rtwPhoto', ''),
+      selfieBg: d.selfie ? 'url(' + d.selfie + ')' : 'none', rtwBg: d.rtwPhoto ? 'url(' + d.rtwPhoto + ')' : 'none', hasSelfie: !!d.selfie, noSelfie: !d.selfie, onSelfieFile: e => this.readFile(e, src => this.setD('selfie', src)), clearSelfie: () => this.setD('selfie', ''),
+      review: [
+        { title: 'Cards', rows: cards.length ? cards.map(c => ({ k: c.name, v: c.detail })) : [ { k: 'None yet', v: contact + ' will sort these with you' } ], edit: () => this.goStep(1) },
+        { title: 'About you', rows: [ { k: 'Name', v: or(d.fullName) }, { k: 'Born', v: dobText }, { k: 'Trade', v: tradeText }, { k: 'Address', v: or(d.address) } ], edit: () => this.goStep(2) },
+        { title: 'Right to work', rows: [ { k: rtw ? rtw.name : 'Not chosen', v: d.rtw === 'code' ? d.shareCode : d.rtwPhoto ? 'Photo added' : rtw && rtw.photo ? 'No photo' : '' } ], edit: () => this.goStep(3) },
+        { title: 'Getting paid', rows: [ { k: 'NI number', v: or(d.ni) }, { k: 'Account', v: d.sortCode || d.account ? d.sortCode + ' · ' + d.account : 'Not given' } ], edit: () => this.goStep(4) },
+        { title: 'Emergency contact', rows: [ { k: or(d.ecName), v: [d.ecRel, d.ecPhone].filter(Boolean).join(' · ') || 'Not given' } ], edit: () => this.goStep(5) },
+        { title: 'Your photo', rows: [ { k: 'Site register', v: d.selfie ? 'Photo added' : 'Not taken' } ], edit: () => this.goStep(6) }
+      ],
+      sigRef: this.sigRef,
+      sigDown: e => { const x = this.sigCtx(); if (!x) return; this._drawing = true; e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId); const [px, py] = this.pt(e); x.beginPath(); x.moveTo(px, py); },
+      sigMove: e => { if (!this._drawing) return; const x = this.sigCtx(); const [px, py] = this.pt(e); x.lineTo(px, py); x.stroke(); if (!d.signed) this.setD('signed', true); },
+      sigUp: () => { this._drawing = false; },
+      clearSig: () => { const c = this.sigRef.current; if (c) { const x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height); } this.setD('signed', false); },
+      clearSigDisplay: d.signed ? 'block' : 'none',
+      doneBody: contact + ' checks your cards and approves you before ' + start + '. You\'ll get a text when that\'s done, and another with where to be and what time.',
+      doneRows: [ { k: 'Sent', v: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }, { k: 'Cards', v: cards.length ? cards.length + ' to check' : 'None sent' }, { k: 'Starts', v: start } ],
+      startAgain: () => { try { localStorage.removeItem(KEY); } catch (e) {} this.setState({ step: 0, d: { ...EMPTY }, cards: [], resumed: false }); },
+      showBar: step < 8, showBack: step > 0,
+      nextLabel: step === 0 ? 'Start' : step === 7 ? 'Send to ' + contact : step === 1 && !cards.length ? 'Next, no cards yet' : step === 4 && !d.ni && !d.account ? 'Skip for now' : 'Next',
+      nextDisabled: !canNext,
+      next: () => { if (!canNext) return; this.goStep(step + 1); },
+      back: () => this.goStep(step - 1), backLabel: step === 1 ? 'Back' : 'Back to ' + (labels[step - 1] || '').toLowerCase(),
+      wideProps: { style: { width: '100%', height: 52, fontSize: 16 } }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -27,24 +27,24 @@
 
 <div data-screen-label="Landing" style="min-height:100vh;background:var(--bg);font-family:var(--sans);color:var(--ink-body);display:flex;flex-direction:column">
 
-  <header style="display:flex;align-items:center;justify-content:flex-end;padding:32px 40px;gap:24px">
+  <header style="display:flex;align-items:center;justify-content:flex-end;padding:clamp(20px,4vw,32px) clamp(20px,4vw,40px);gap:24px;margin-top:{{ safeTop }}">
     <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Lockup" height="{{ lockupHeight }}" base="assets/" hint-size="220px,20px"></x-import>
   </header>
 
-  <main style="flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:64px;align-items:center;max-width:1120px;width:100%;margin:0 auto;padding:40px 40px 64px">
+  <main style="flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:clamp(32px,6vw,64px);align-items:center;max-width:1120px;width:100%;margin:0 auto;padding:clamp(16px,4vw,40px) clamp(20px,4vw,40px) 64px">
 
     <section style="display:flex;flex-direction:column;max-width:560px">
-      <h1 style="font-size:44px;font-weight:300;line-height:1.1;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">The platform for the people doing the work.</h1>
+      <h1 style="font-size:clamp(32px,5vw,44px);font-weight:300;line-height:1.1;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">The platform for the people doing the work.</h1>
     </section>
 
-    <section aria-label="Log in" style="background:var(--bg2);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:24px">
+    <section aria-label="Log in" style="background:var(--bg2);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:24px;width:100%;max-width:440px;justify-self:end">
       <h2 style="font-size:20px;font-weight:500;color:var(--ink);line-height:1.2">Log in</h2>
       <form style="display:flex;flex-direction:column;gap:16px" onSubmit="{{ onSubmit }}">
         <sc-if value="{{ stepContact }}" hint-placeholder-val="{{ true }}">
-          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Email or mobile" type="text" placeholder="you@company.co.uk or 07700 900123" value="{{ contact }}" on-change="{{ onContact }}" hint="We'll send you a six-digit code. No password." hint-size="100%,96px"></x-import>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Email or mobile" type="text" placeholder="Email or mobile" value="{{ contact }}" on-change="{{ onContact }}" hint="We'll text or email you a code." hint-size="100%,96px"></x-import>
         </sc-if>
         <sc-if value="{{ stepCode }}" hint-placeholder-val="{{ false }}">
-          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="{{ codeLabel }}" type="text" placeholder="000000" value="{{ code }}" on-change="{{ onCode }}" hint="Six digits. It lasts 10 minutes." hint-size="100%,96px"></x-import>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="{{ codeLabel }}" type="text" placeholder="000000" value="{{ code }}" on-change="{{ onCode }}" hint="Lasts 10 minutes." hint-size="100%,96px"></x-import>
         </sc-if>
         <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
           <p style="font-size:14px;color:var(--bad-fg)">{{ errorText }}</p>
@@ -63,8 +63,8 @@
 
   </main>
 
-  <footer style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 40px 28px;font-size:10px;letter-spacing:.1em;color:var(--muted);flex-wrap:wrap">
-    <span>FORMATTION AI LTD</span>
+  <footer style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 clamp(20px,4vw,40px) 28px;font-size:10px;letter-spacing:.1em;color:var(--muted);flex-wrap:wrap">
+    <a href="https://formattion.ai" target="_blank" rel="noopener" aria-label="formattion ai" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin-left:-12px"><img src="assets/mark.svg" alt="" style="width:20px;height:20px;display:block"></a>
     <div style="display:flex;align-items:center;gap:24px">
       <a href="#" style="color:var(--muted)">PRIVACY</a>
       <a href="#" style="color:var(--muted)">TERMS</a>
@@ -76,7 +76,8 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;demoFail&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behaviour&quot;}}">
 class Component extends DCLogic {
-  state = { step: 'contact', contact: '', code: '', error: '' };
+  state = { step: 'contact', contact: '', code: '', error: '', safeTop: 0 };
+  componentDidMount() { try { const st = +new URLSearchParams(location.search).get('top') || 0; if (st) this.setState({ safeTop: st }); } catch (e) {} }
   renderVals() {
     const { step, contact, code, error } = this.state;
     const isPhone = /^[\d\s+]+$/.test(contact.trim());
@@ -84,6 +85,7 @@ class Component extends DCLogic {
     return {
       contact, code, stepContact, stepCode,
       lockupHeight: 18,
+      safeTop: 'calc(' + (this.state.safeTop || 0) + 'px + env(safe-area-inset-top, 0px))',
       toggleWidth: 34,
       showError: !!error,
       errorText: error,

@@ -21,7 +21,7 @@
 <section style="padding:40px;display:flex;flex-direction:column;gap:28px;font-family:var(--sans);color:var(--ink-body)">
   <div style="display:flex;flex-direction:column;gap:6px">
     <h1 style="font-size:28px;font-weight:300;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Phone layout</h1>
-    <p style="font-size:15px;color:var(--muted);max-width:640px;text-wrap:pretty">All three share the new phone chrome: 60px bar, menu from the top, For as the mark bottom-right opening a full-screen chat, sections that collapse with the first one open, swipe from the left edge to go back. They differ in how a section reads.</p>
+    <p style="font-size:15px;color:var(--muted);max-width:640px;text-wrap:pretty">Summary is the chosen layout. 1a and 1b are earlier options.</p>
   </div>
   <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start">
     <sc-for list="{{ variants }}" as="v" hint-placeholder-count="3">
@@ -52,10 +52,11 @@ class Component extends DCLogic {
     const mk = (m) => (s) => 'Platform.dc.html?top=54&m=' + m + '&screen=' + s;
     const set = (m, more) => { const u = mk(m); return [ { label: 'Today', src: u('today') }, { label: 'Project · Meadow Rise', src: u('project&id=meadow') }, ...(more ? [ { label: 'Money', src: u('money') }, { label: 'Operative · Lee Parker', src: u('operative&id=lee') }, { label: 'Equipment · dumper', src: u('unit&id=dumper') }, { label: 'Company', src: u('company') } ] : []) ]; };
     return { variants: [
-      { id: '2a', name: 'Summary — chosen', note: 'Now the default phone layout. All dashboards shown.', phones: set('summary', true) },
-      { id: '1a', name: 'Panels', note: 'Flat panel cards, as on desktop, stacked with 20px between.', phones: set('panels') },
-      { id: '1b', name: 'Paper', note: 'No boxes. Sections sit on the paper, split by hairlines — closest to the website.', phones: set('paper') },
-      { id: '1c', name: 'Summary', note: 'Panel cards; a closed section shows a one-line summary so you rarely need to open it.', phones: set('summary') }
+      { id: '3a', name: 'Log in', note: '', phones: [ { label: 'Landing', src: 'Landing Page.dc.html?top=54' } ] },
+      { id: '2a', name: 'Summary', note: '', phones: set('summary', true) },
+      { id: '1a', name: 'Panels', note: 'Flat cards, as on desktop.', phones: set('panels') },
+      { id: '1b', name: 'Paper', note: 'No boxes, hairlines only.', phones: set('paper') },
+      { id: '1c', name: 'Summary', note: 'Closed sections show one line.', phones: set('summary') }
     ] };
   }
 }
