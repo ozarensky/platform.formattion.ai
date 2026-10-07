@@ -1096,7 +1096,7 @@ class Component extends DCLogic {
       menuSecondary: ['company', 'sign out'],
       menuCurrent,
       menuFooter: ['FORMATTION AI LTD', 'PLATFORM 0.1'],
-      clientLogo: this.props.clientLogo || (dark ? 'assets/lockup-bright.svg' : 'assets/lockup.svg'),
+      clientLogo: this.props.clientLogo || (dark ? 'assets/clients/woodleaze/lockup-short-bright.svg' : 'assets/clients/woodleaze/lockup-short.svg'),
       onMenu: it => it === 'sign out' ? window.fpAuth && window.fpAuth.signOut('index.html') : this.go(it, { selId: null, opId: null, from: it }, true),
       crumb: isContractor ? 'contractor' : isProject ? 'project' : isDetail ? 'retention' : isClaim ? 'claim' : isSent ? 'sent' : isOperative ? 'operative' : isUnit ? 'equipment' : isInvite || isInvited ? 'invite' : isApprove || isApproved ? 'approve' : screen,
       isInvite, isInvited, isApprove, isApproved, inv, cand,
