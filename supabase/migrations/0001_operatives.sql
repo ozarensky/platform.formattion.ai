@@ -13,7 +13,7 @@
 
 create table public.tenants (
   id          uuid primary key default gen_random_uuid(),
-  name        text not null,                      -- "Woodleys"
+  name        text not null,                      -- "Woodleaze"
   created_at  timestamptz not null default now()
 );
 
@@ -53,6 +53,7 @@ create table public.operatives (
   mobile          text,                           -- E.164, "+447700900859"
   starts_on       date,
   invited_by      uuid references auth.users (id),
+  invited_by_name text,                           -- "David", for the form's welcome screen
 
   -- About you
   surname         text,

@@ -7,14 +7,14 @@ already points at: `uhomumiwlbrvsdefodjs`). No second project.
 ## How it fits together
 
 ```
-Platform (manager, logged in)          Intake form (operative, no account)
-        │                                        │
-        │ "Send the link"                        │ opens platform.formattion.ai/join/<token>
-        ▼                                        ▼
-  Edge Function create-invite           Edge Functions get-invite · save-draft
-        │                                        · upload-url · submit-intake
-        │ service-role key (bypasses RLS)        │ service-role key, after checking the token
-        ▼                                        ▼
+Platform.dc.html (manager, logged in)       join.html?t=<token> (operative, no account)
+        │                                           │
+        │ "Send the link"                           │ opens the link from the text
+        ▼                                           ▼
+  Edge Function create-invite              Edge Functions get-invite · save-draft
+        │                                           · upload-url · submit-intake
+        │ service-role key (bypasses RLS)           │ service-role key, after checking the token
+        ▼                                           ▼
   ┌──────────────────────── Postgres ──────────────────────────┐
   │ tenants · memberships · operatives · operative_cards       │
   │ operative_bank · operative_invites        (RLS by tenant)  │
@@ -22,22 +22,27 @@ Platform (manager, logged in)          Intake form (operative, no account)
   ┌──────────────────────── Storage ───────────────────────────┐
   │ bucket "operatives" (private)                               │
   │   {tenant_id}/{operative_id}/photo.jpg, signature.png,      │
-  │   licence/…, right-to-work/…, cards/{card_id}/front.jpg …   │
+  │   licence/front.jpg, right-to-work/document.jpg,            │
+  │   cards/{card_id}/front.jpg, back.jpg                       │
   └────────────────────────────────────────────────────────────┘
 ```
 
-The "folder per operative" you want is the `{tenant_id}/{operative_id}/` prefix in the
-bucket. Supabase Storage shows prefixes as folders in the dashboard.
+The "folder per operative" is the `{tenant_id}/{operative_id}/` prefix in the bucket.
+Supabase Storage shows prefixes as folders in the dashboard.
 
-## Step 1 — Run the database migration
+The platform reads the Waiting list, the approve screen and the photos straight
+through supabase-js as the logged-in manager (row-level security limits it to their
+own tenant). Only the two things that need to happen without a log-in or with
+secrets go through Edge Functions: creating the link (it needs the Twilio keys) and
+everything the form does.
+
+## Step 1 — Run the database migration (2 minutes)
 
 1. Open the project → **SQL Editor** → **New query**.
 2. Paste `supabase/migrations/0001_operatives.sql` and press **Run**.
 3. Check **Table Editor**: you should see `tenants`, `memberships`, `operatives`,
    `operative_cards`, `operative_bank`, `operative_invites`.
 4. Check **Storage**: a private bucket called `operatives`.
-
-What it did:
 
 | Table | Holds | Who can read it from the browser |
 |---|---|---|
@@ -48,88 +53,84 @@ What it did:
 | `operative_bank` | sort code / account, kept apart | tenant members |
 | `operative_invites` | the link tokens, hashed, 7-day expiry, `used_at` on submit | tenant members (read only) |
 
-Row-level security is on everywhere. A policy is a rule like "this row's `tenant_id`
-must be one of the tenants the logged-in user belongs to". The intake form is not
-logged in, so it cannot read or write anything directly; it goes through Edge
-Functions (step 3).
-
-## Step 2 — Give yourself a tenant
+## Step 2 — Give yourself a tenant (1 minute)
 
 The migration adds a trigger: every new sign-up gets a tenant of their own and an
 `owner` membership. Your existing log-in predates it, so do it once by hand:
 
 ```sql
--- SQL Editor
-insert into public.tenants (name) values ('Woodleys') returning id;
--- copy the id, then (your user id is under Authentication → Users):
+-- SQL Editor. Find your user id under Authentication → Users first.
+with t as (insert into public.tenants (name) values ('Woodleaze') returning id)
 insert into public.memberships (user_id, tenant_id, role)
-values ('<your-user-id>', '<tenant-id>', 'owner');
+select '<your-user-id>', id, 'owner' from t;
 ```
 
-Test it: **SQL Editor** → run `select * from public.my_tenant_ids();` while
-impersonating your user (the **Role** dropdown above the query → *authenticated* →
-pick your user). You should see one id.
+The form's welcome screen says "David has invited you". It takes the name from the
+inviter's log-in: **Authentication → Users → your user → User Metadata** → add
+`{"first_name": "David"}`. Without it, it uses the part of the email before the @.
 
-## Step 3 — Edge Functions
+## Step 3 — Deploy the Edge Functions (5 minutes)
 
-Five small functions, all in `supabase/functions/`. They run on Supabase's servers
-with the **service-role** key, which is how they can write to tables the form itself
-cannot touch.
+Five small functions, all in `supabase/functions/`:
 
 | Function | Called by | Does |
 |---|---|---|
-| `create-invite` | Platform, "Send the link" | reads the manager's tenant, inserts `operatives` (status `invited`) + `operative_invites`, sends the SMS (or returns the link for share/copy) |
-| `get-invite` | Form, on open | checks the token: not expired, not used → returns first name, company, start date, saved draft; marks `opened_at`, status `draft` |
+| `create-invite` | Platform, "Send the link" | reads the manager's tenant, inserts `operatives` (status `invited`) + `operative_invites`, texts the link (or hands it back to copy/share) |
+| `get-invite` | Form, on open | checks the token: not expired, not used → returns first name, company, start date, saved draft and signed links to any photos already uploaded |
 | `save-draft` | Form, every step | stores the current answers in `operatives.draft` (the "come back to it" rule) |
 | `upload-url` | Form, every photo | returns a one-off signed upload URL for exactly one path under the operative's folder; the phone uploads straight to Storage |
-| `submit-intake` | Form, "Send to Dan" | checks the token again, writes the columns, cards and bank row, saves `signature.png`, sets `used_at` (link closes) and status `to_approve`, texts the manager |
+| `submit-intake` | Form, "Send to David" | checks the token again, writes the columns, cards and bank row, records the signature, sets `used_at` (link closes) and status `to_approve` |
 
-Install the CLI once (`npm i -g supabase`), then:
+Install the CLI once, then from the repo root:
 
 ```sh
-supabase login
+npm i -g supabase
+supabase login                                   # opens the browser
 supabase link --project-ref uhomumiwlbrvsdefodjs
-supabase functions deploy            # deploys everything under supabase/functions
+supabase functions deploy                        # deploys all five; config.toml turns off JWT checks for them
 ```
 
-Secrets the functions need (**Project Settings → Edge Functions → Secrets**, or
-`supabase secrets set NAME=value`):
+Then the secrets (**Project Settings → Edge Functions → Secrets**, or the CLI):
 
-- `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — set automatically, nothing to do
-- `INTAKE_BASE_URL` = `https://platform.formattion.ai/join`
-- `SMS_PROVIDER` + its keys, once you pick one (see below)
+```sh
+supabase secrets set INTAKE_BASE_URL=https://platform.formattion.ai/join.html
+# Twilio, from console.twilio.com → Account info. Leave these out and "Send the link"
+# shows the link to copy or share instead of texting it.
+supabase secrets set TWILIO_ACCOUNT_SID=AC...  TWILIO_AUTH_TOKEN=...  TWILIO_FROM=+447460077297
+```
 
-Never put the service-role key in `assets/config.js` or anywhere in the repo.
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set automatically. Never put the
+service-role key in `assets/config.js` or anywhere in the repo.
 
-## Step 4 — Sending the link
+A **trial** Twilio account only texts numbers you have verified in its console
+(Phone Numbers → Verified Caller IDs) and prefixes every message with "Sent from
+your Twilio trial account". Upgrade when real operatives start getting links.
 
-The functions always produce the same link: `https://platform.formattion.ai/join/<token>`.
-How it reaches the operative is a setting:
+## Step 4 — Try it end to end
 
-1. **Share sheet / copy** (no account needed): `create-invite` returns the link and the
-   platform opens the phone's share menu, or copies it. Start here.
-2. **SMS**: add a Twilio (or Vonage / MessageBird) account, put the keys in Secrets, and
-   `create-invite` sends "David at Woodleys has sent you a link to join the
-   team: … It works until 14 Oct." Around 4–5p per text in the UK.
-3. **WhatsApp Business API** via Twilio: same code path, but Meta approves the message
-   template first.
+1. Log in to the platform → menu → operatives → **Invite an operative**. First name,
+   mobile, Send the link.
+2. The next screen shows the link (and says whether it was texted). Open it on a phone:
+   `https://platform.formattion.ai/join.html?t=…`
+3. Fill the form, sign, **Send to David**. Each photo uploads as it is taken; the final
+   step only sends text.
+4. Back on the platform, operatives → **Waiting** shows them as *to approve*. Open,
+   check the photos, **Approve and add**. They move up into the list.
 
-The 7-day rule lives in `operative_invites.expires_at`; "closes on submit" is
-`used_at`. For's nudge after 2 days is a scheduled query on invites where
-`opened_at is null and created_at < now() - interval '2 days'`.
+If something fails: **Edge Functions → Logs** in the dashboard shows each call and
+its error. The form shows a plain-English line above the Next button.
 
-## Step 5 — Wiring the form
+## What is still mock
 
-The uploaded form currently keeps everything in `localStorage` under `intake:demo`
-and the final step only shows "Sent". The changes to make, in order:
-
-1. Read the token from the URL and call `get-invite`; show "This link has closed" when
-   it says so.
-2. On every `goStep`, call `save-draft` as well as `localStorage.setItem`.
-3. When a photo is taken (`readFile` → data URL), call `upload-url`, PUT the JPEG to it,
-   and keep the returned **path** in state instead of the data URL.
-4. On the last step, export the canvas (`sigRef.current.toDataURL('image/png')`),
-   upload it the same way, then call `submit-intake` with the answers and paths.
+- **Card names, numbers and expiry dates.** The design says "For reads the card";
+  today a card is saved as "Card 1", "Card 2" with both photos, and the approve
+  screen says the number and date are to check. Reading them from the photos is the
+  next piece (an Edge Function with an image model).
+- **The rest of the platform** (projects, money, equipment, the operative profile
+  page) is still the design's mock data. Approved operatives appear in the list
+  but have no profile page yet.
+- **"For nudges after 2 days"** is a scheduled query on `operative_invites` where
+  `opened_at is null and created_at < now() - interval '2 days'`; not written yet.
 
 ## Keeping it lawful
 
@@ -137,9 +138,9 @@ The form collects NI numbers, bank details, right-to-work documents and a signat
 all personal data under UK GDPR, and right-to-work copies carry a statutory retention
 (two years after the person leaves). Before going live:
 
-- add a consent line on **Check and sign** ("Woodleys will keep this to pay
-  you and prove your right to work; see our privacy notice");
+- add a consent line on **Check and sign** ("Woodleaze will keep this to pay you and
+  prove your right to work; see our privacy notice");
 - set a retention: a scheduled query that deletes bank rows and right-to-work files a
   fixed time after `status = 'left'`;
-- consider encrypting `operative_bank` columns with Supabase Vault, or storing only the
-  last four digits of the account and keeping the full details in your payroll system.
+- consider encrypting `operative_bank` columns with Supabase Vault, or storing only
+  the last four digits of the account and keeping the full details in payroll.

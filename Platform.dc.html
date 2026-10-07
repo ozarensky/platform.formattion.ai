@@ -6,6 +6,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/config.js"></script>
 <script src="assets/auth.js"></script>
+<script src="assets/operatives.js"></script>
 <script>window.fpAuth && window.fpAuth.requireSession('index.html');</script>
 <script src="./support.js"></script>
 </head>
@@ -207,6 +208,7 @@
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="First name" placeholder="Tom" value="{{ inv.name }}" on-change="{{ onInvName }}" hint-size="100%,72px"></x-import>
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Mobile" type="tel" placeholder="07700 900123" value="{{ inv.phone }}" on-change="{{ onInvPhone }}" hint="The link goes by text and lasts 7 days. They can come back to it until they submit; then it closes." hint-size="100%,96px"></x-import>
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Starts on" placeholder="Monday 5 Oct" value="{{ inv.start }}" on-change="{{ onInvStart }}" hint="Optional. Their cards must be approved before this day." hint-size="100%,96px"></x-import>
+          <sc-if value="{{ inviteError }}" hint-placeholder-val="{{ false }}"><p role="alert" style="font-size:14px;color:var(--bad-fg);text-wrap:pretty">{{ inviteError }}</p></sc-if>
         </form>
         <div style="background:var(--bg2);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:4px">
           <span style="font-size:14px;color:var(--muted)">What they'll get</span>
@@ -229,6 +231,18 @@
           </div>
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="info" hint-size="70px,26px">invited</x-import>
         </div>
+        <sc-if value="{{ hasInviteLink }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+            <div style="background:var(--work);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:13px;color:var(--muted)">{{ inviteSentLine }}</span>
+              <span style="font-size:14px;color:var(--ink);word-break:break-all;font-variant-numeric:tabular-nums">{{ inviteLink }}</span>
+            </div>
+            <div style="display:flex;gap:4px;padding:0 8px 4px;flex-wrap:wrap">
+              <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="text" on-click="{{ copyInviteLink }}" hint-size="100px,44px">{{ copyLabel }}</x-import>
+              <sc-if value="{{ canShare }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="text" on-click="{{ shareInviteLink }}" hint-size="80px,44px">Share</x-import></sc-if>
+            </div>
+          </div>
+        </sc-if>
       </section>
     </sc-if>
 
@@ -237,17 +251,17 @@
       <section data-screen-label="Approve operative" style="display:flex;flex-direction:column;gap:24px">
         <div style="display:flex;flex-direction:column;gap:8px">
           <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Check {{ cand.name }}'s cards</h1>
-          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">For read these from the photos. Change anything that's wrong, then approve. Nothing is added until you do.</p>
+          <p style="font-size:16px;line-height:1.6;text-wrap:pretty">{{ candIntro }}</p>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">
           <sc-for list="{{ cand.photos }}" as="ph" hint-placeholder-count="3">
-            <div style="aspect-ratio:3 / 2;border-radius:12px;background:var(--bg3);border:1px solid var(--line);display:flex;align-items:flex-end;padding:10px 12px">
-              <span style="font-size:13px;color:var(--ink-body)">{{ ph }}</span>
-            </div>
+            <button type="button" onClick="{{ ph.open }}" style="aspect-ratio:3 / 2;border-radius:12px;background:var(--bg3) {{ ph.bg }} center / cover no-repeat;border:1px solid var(--line);display:flex;align-items:flex-end;padding:10px 12px;cursor:pointer;text-align:left">
+              <span style="font-size:13px;color:var(--ink-body);background:var(--bg2);border-radius:6px;padding:2px 8px">{{ ph.label }}</span>
+            </button>
           </sc-for>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px">
-          <h2 style="font-size:20px;font-weight:500;color:var(--ink)">Details <span style="font-size:14px;font-weight:400;color:var(--info-fg)">· filled by For</span></h2>
+          <h2 style="font-size:20px;font-weight:500;color:var(--ink)">Details <span style="font-size:14px;font-weight:400;color:var(--info-fg)">{{ candDetailsNote }}</span></h2>
           <form style="display:flex;flex-direction:column;gap:16px" onSubmit="{{ approve }}">
             <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Full name" default-value="{{ cand.fullName }}" hint-size="100%,72px"></x-import>
             <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Trade" default-value="{{ cand.trade }}" hint-size="100%,72px"></x-import>
@@ -256,7 +270,7 @@
           </form>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px">
-          <h2 style="font-size:20px;font-weight:500;color:var(--ink)">Cards <span style="font-size:14px;font-weight:400;color:var(--info-fg)">· read by For</span></h2>
+          <h2 style="font-size:20px;font-weight:500;color:var(--ink)">Cards <span style="font-size:14px;font-weight:400;color:var(--info-fg)">{{ candCardsNote }}</span></h2>
           <ul style="list-style:none;background:var(--work);border:1px solid var(--dim);border-radius:12px;display:flex;flex-direction:column">
             <sc-for list="{{ cand.cards }}" as="c" hint-placeholder-count="2">
               <li style="display:flex;justify-content:space-between;gap:16px;padding:14px 18px;border-bottom:1px solid var(--dim);align-items:center">
@@ -455,7 +469,7 @@
     <!-- company -->
     <sc-if value="{{ isCompany }}" hint-placeholder-val="{{ false }}">
       <section data-screen-label="Company" style="display:flex;flex-direction:column;gap:20px">
-        <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">Woodleys</h1>
+        <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">Woodleaze</h1>
         <div style="display:{{ arrangeBarDisplay }};align-items:center;gap:16px;flex-wrap:wrap;min-height:44px">
           <button type="button" onClick="{{ toggleArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">{{ arrangeLabel }}</button>
           <sc-if value="{{ arranging }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ resetArrange }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer;" style-hover="color:var(--ink)">Reset</button></sc-if>
@@ -806,11 +820,11 @@ const OPERATIVES = [
 ];
 const EQUIPMENT = [
   { id: 'exc', name: '8t excavator · JCB 85Z-2', meta: 'Owned · on Oakfield School extension', tone: 'ok', word: 'checked', check: 'Weekly check signed by Lee Parker · 28 Sep 2026 · LOLER to 3 Feb 2027',
-    rows: [ { k: 'Serial', v: 'JCB85Z2-0471938' }, { k: 'Owner', v: 'Woodleys' }, { k: 'Where', v: 'Oakfield School extension' }, { k: 'Operator', v: 'Lee Parker' }, { k: 'Bought', v: 'Mar 2023' } ],
+    rows: [ { k: 'Serial', v: 'JCB85Z2-0471938' }, { k: 'Owner', v: 'Woodleaze' }, { k: 'Where', v: 'Oakfield School extension' }, { k: 'Operator', v: 'Lee Parker' }, { k: 'Bought', v: 'Mar 2023' } ],
     certs: [ { name: 'LOLER thorough examination', detail: 'To 3 Feb 2027', tone: 'ok', word: 'valid' }, { name: 'Weekly check', detail: 'Signed 28 Sep 2026 · next due 5 Oct', tone: 'ok', word: 'checked' }, { name: 'Service', detail: 'Last 500 h service 12 Aug 2026', tone: 'ok', word: 'valid' } ],
     history: [ { what: 'Lee Parker signed the weekly check. No defects.', when: '28 Sep 2026' }, { what: 'Lee Parker signed the weekly check. Slow-track grease nipple noted, done same day.', when: '21 Sep 2026' }, { what: 'Moved from Meadow Rise phase 2 to Oakfield School extension.', when: '15 Sep 2026' } ] },
   { id: 'dumper', name: '3t dumper · Thwaites', meta: 'Owned · on Brookside Farm drainage', tone: 'warn', word: 'due', check: 'Weekly check due today · last signed 21 Sep 2026',
-    rows: [ { k: 'Serial', v: 'TH3T-2019-8812' }, { k: 'Owner', v: 'Woodleys' }, { k: 'Where', v: 'Brookside Farm drainage' }, { k: 'Operator', v: 'Marek Nowak' }, { k: 'Bought', v: 'Jun 2019' } ],
+    rows: [ { k: 'Serial', v: 'TH3T-2019-8812' }, { k: 'Owner', v: 'Woodleaze' }, { k: 'Where', v: 'Brookside Farm drainage' }, { k: 'Operator', v: 'Marek Nowak' }, { k: 'Bought', v: 'Jun 2019' } ],
     certs: [ { name: 'Weekly check', detail: 'Due today · last signed 21 Sep 2026', tone: 'warn', word: 'due' }, { name: 'Service', detail: 'Last service 4 Jul 2026', tone: 'ok', word: 'valid' } ],
     history: [ { what: 'Marek Nowak signed the weekly check. No defects.', when: '21 Sep 2026' }, { what: 'For reminded Marek Nowak the check is due.', when: '30 Sep 2026' } ] },
   { id: 'box', name: 'Trench box · 3.0 m', meta: 'Hired from GAP · on Station Road flats', tone: 'ok', word: 'checked', check: 'Inspected 29 Sep 2026 · hire ends 14 Oct 2026',
@@ -818,11 +832,11 @@ const EQUIPMENT = [
     certs: [ { name: 'Excavation support inspection', detail: 'Inspected 29 Sep 2026 · next due 6 Oct', tone: 'ok', word: 'checked' }, { name: 'Hire period', detail: 'Ends 14 Oct 2026', tone: 'info', word: 'on hire' } ],
     history: [ { what: 'Josh Reid inspected the box before the shift. No damage.', when: '29 Sep 2026' }, { what: 'Delivered by GAP. Hire note read by For, dates added.', when: '16 Sep 2026' } ] },
   { id: 'laser', name: 'Laser level · Topcon RL-H5A', meta: 'Owned · in the van', tone: 'warn', word: 'expiring', check: 'Calibration runs out 24 Oct 2026 · 23 days',
-    rows: [ { k: 'Serial', v: 'RLH5A-77-20391' }, { k: 'Owner', v: 'Woodleys' }, { k: 'Where', v: 'Ford Transit · WR21 KLM' }, { k: 'Bought', v: 'Oct 2024' } ],
+    rows: [ { k: 'Serial', v: 'RLH5A-77-20391' }, { k: 'Owner', v: 'Woodleaze' }, { k: 'Where', v: 'Ford Transit · WR21 KLM' }, { k: 'Bought', v: 'Oct 2024' } ],
     certs: [ { name: 'Calibration certificate', detail: 'Runs out 24 Oct 2026 · 23 days', tone: 'warn', word: 'expiring' } ],
     history: [ { what: 'For reminded you the calibration is due. Book with Topcon Swindon.', when: '24 Sep 2026' }, { what: 'Calibrated by Topcon Swindon.', when: '24 Oct 2025' } ] },
   { id: 'van', name: 'Ford Transit · WR21 KLM', meta: 'Owned · David Reape', tone: 'bad', word: 'overdue', check: 'MOT ran out 25 Sep 2026 · book it before it goes on the road',
-    rows: [ { k: 'Registration', v: 'WR21 KLM' }, { k: 'Owner', v: 'Woodleys' }, { k: 'Driver', v: 'David Reape' }, { k: 'Mileage', v: '84,210' }, { k: 'Insurance', v: 'To 1 Mar 2027' } ],
+    rows: [ { k: 'Registration', v: 'WR21 KLM' }, { k: 'Owner', v: 'Woodleaze' }, { k: 'Driver', v: 'David Reape' }, { k: 'Mileage', v: '84,210' }, { k: 'Insurance', v: 'To 1 Mar 2027' } ],
     certs: [ { name: 'MOT', detail: 'Ran out 25 Sep 2026 · 5 days overdue', tone: 'bad', word: 'overdue' }, { name: 'Tax', detail: 'To 1 Jan 2027', tone: 'ok', word: 'valid' }, { name: 'Insurance', detail: 'To 1 Mar 2027', tone: 'ok', word: 'valid' } ],
     history: [ { what: 'For chased you again. The van has no MOT and is not road legal.', when: '30 Sep 2026' }, { what: 'For reminded you the MOT runs out in 30 days.', when: '26 Aug 2026' } ] }
 ];
@@ -845,12 +859,33 @@ const dLong = s => new Date(s).toLocaleDateString('en-GB', { day: 'numeric', mon
 const dShort = s => new Date(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 const days = s => Math.round((TODAY - new Date(s)) / 86400000);
 function draftFor(r) {
-  return 'Dear ' + r.contractor + ',\n\nRe: ' + r.project + ' — release of retention\n\nThe defects liability period on this contract ended on ' + dLong(r.due) + '. The second half of retention, ' + gbp(r.amount) + ', is now due for release under the contract.\n\nPlease confirm the release and the date payment will be made. If there are any outstanding defects you believe affect this, send us the list and we will attend within 7 days.\n\nKind regards,\nDavid Reape\nWoodleys';
+  return 'Dear ' + r.contractor + ',\n\nRe: ' + r.project + ' — release of retention\n\nThe defects liability period on this contract ended on ' + dLong(r.due) + '. The second half of retention, ' + gbp(r.amount) + ', is now due for release under the contract.\n\nPlease confirm the release and the date payment will be made. If there are any outstanding defects you believe affect this, send us the list and we will attend within 7 days.\n\nKind regards,\nDavid Reape\nWoodleaze';
 }
 
 class Component extends DCLogic {
-  state = { screen: 'today', from: 'today', selId: null, opId: null, unitId: null, candId: null, pjId: null, inv: { name: '', phone: '', start: '' }, invites: [], approved: [], history: [], scrolled: false, wide: window.innerWidth >= 1040, mobile: window.innerWidth <= 768, mobileStyle: (new URLSearchParams(location.search).get('m')) || 'summary', safeTop: +(new URLSearchParams(location.search).get('top')) || 0, chatOpen: false, messages: [], claimed: {}, draft: '', drafting: false, ask: '', askReply: '', mailbox: null };
+  state = { screen: 'today', from: 'today', selId: null, opId: null, unitId: null, candId: null, pjId: null, inv: { name: '', phone: '', start: '' }, invites: [], live: null, candUrls: null, inviteResult: null, inviteError: '', busy: false, copied: false, approved: [], history: [], scrolled: false, wide: window.innerWidth >= 1040, mobile: window.innerWidth <= 768, mobileStyle: (new URLSearchParams(location.search).get('m')) || 'summary', safeTop: +(new URLSearchParams(location.search).get('top')) || 0, chatOpen: false, messages: [], claimed: {}, draft: '', drafting: false, ask: '', askReply: '', mailbox: null };
+  // Live rows from Supabase when the platform is logged in; the mock data stays for the preview.
+  async loadLive() {
+    const api = window.fpOperatives; if (!api || !api.ready) return;
+    try { const rows = await api.list(); this.setState({ live: rows }); } catch (e) { console.warn('operatives', e); }
+  }
+  async openCandidate(id) {
+    this.go('approve', { candId: id, from: 'operatives', candUrls: null });
+    const api = window.fpOperatives, row = (this.state.live || []).find(r => r.id === id); if (!api || !row) return;
+    try { this.setState({ candUrls: await api.urls(api.photoPaths(row).map(p => p.path)) }); } catch (e) { console.warn('photos', e); }
+  }
+  async approveLive(id) {
+    const api = window.fpOperatives; this.setState({ busy: true });
+    try { await api.approve(id); await this.loadLive(); this.setState({ busy: false }); this.go('approved', { candId: id }); }
+    catch (e) { this.setState({ busy: false, inviteError: e.message }); }
+  }
+  async sendLiveInvite(inv) {
+    const api = window.fpOperatives; this.setState({ busy: true, inviteError: '' });
+    try { const r = await api.invite(inv); await this.loadLive(); this.setState({ busy: false, copied: false }); this.go('invited', { inviteResult: r }); }
+    catch (e) { this.setState({ busy: false, inviteError: e.message }); }
+  }
   componentDidMount() {
+    this.loadLive();
     try { const q = new URLSearchParams(location.search); const st = +q.get('top') || 0; const ms = q.get('m'); this._urlStyle = ms || null; if (st || ms) this.setState({ safeTop: st, mobileStyle: ms || this.state.mobileStyle }); const sc = q.get('screen'); if (sc) { const id = q.get('id'); const map = { project: 'pjId', operative: 'opId', unit: 'unitId', detail: 'selId', approve: 'candId' }; this.setState({ screen: sc, history: sc === 'today' ? [] : [{ screen: 'today' }], ...(id && map[sc] ? { [map[sc]]: id } : {}) }); } } catch (e) {}
     try { const s = JSON.parse(localStorage.getItem('fp-claimed') || '{}'); this.setState({ claimed: s }); } catch (e) {}
     try { const l = JSON.parse(localStorage.getItem('fp-layouts') || 'null'); if (l && typeof l === 'object') this.setState({ layouts: l }); } catch (e) {}
@@ -1013,8 +1048,19 @@ class Component extends DCLogic {
     const isToday = screen === 'today', isJobs = screen === 'projects', isMoney = screen === 'money', isOperatives = screen === 'operatives', isCompany = screen === 'company', isContractors = screen === 'contractors', isContractor = screen === 'contractor', isEquipment = screen === 'equipment', isUnit = screen === 'unit';
     const isInvite = screen === 'invite', isInvited = screen === 'invited', isApprove = screen === 'approve', isApproved = screen === 'approved';
     const { inv, invites, approved } = this.state;
-    const pendingAll = [...PENDING.filter(p => !approved.includes(p.id)), ...invites];
-    const cand = PENDING.find(p => p.id === this.state.candId) || PENDING[0];
+    const api = window.fpOperatives, liveOn = !!this.state.live, liveRows = this.state.live || [], candUrls = this.state.candUrls || {};
+    const shapeLive = r => {
+      const name = [r.first_name, r.surname].filter(Boolean).join(' '), cardsIn = r.status === 'to_approve', invite = (r.operative_invites || [])[0];
+      const when = cardsIn ? 'Cards in ' + dShort(r.submitted_at) : invite && invite.opened_at ? 'Opened ' + dShort(invite.opened_at) + ' · not sent yet' : 'Link sent ' + dShort(r.created_at) + ' · not opened yet';
+      const cards = (r.operative_cards || []).map(c => ({ name: c.name, detail: [c.number ? 'No. ' + c.number : '', c.expires_on ? 'to ' + dShort(c.expires_on) : ''].filter(Boolean).join(' · ') || 'Number and date to check from the photos', tone: 'info', word: 'to check' }));
+      const photos = api.photoPaths(r).map(ph => ({ label: ph.label, bg: candUrls[ph.path] ? 'url("' + candUrls[ph.path] + '")' : '', open: () => candUrls[ph.path] && window.open(candUrls[ph.path], '_blank') }));
+      const facts = [r.date_of_birth ? 'Born ' + dLong(r.date_of_birth) : '', [r.address_line, r.town, r.postcode].filter(Boolean).join(', '), r.ni_number ? 'NI ' + r.ni_number : '', r.rtw_type === 'code' ? 'Share code ' + r.rtw_share_code : r.rtw_type === 'passport' ? 'Passport photographed' : r.rtw_type === 'brp' ? 'Residence permit photographed' : '', r.licence_number ? 'Licence ' + r.licence_number + (r.licence_expiry ? ' to ' + dLong(r.licence_expiry) : '') + (r.licence_points != null ? ' · ' + (r.licence_points || 'no') + ' points' : '') : ''].filter(Boolean);
+      return { id: r.id, live: true, name: name || r.first_name, fullName: name || r.first_name, phone: api.fmtPhone(r.mobile), trade: r.trade || 'Trade not given yet', emergency: [r.emergency_name, r.emergency_relation, r.emergency_phone].filter(Boolean).join(' · ') || 'Not given', status: cardsIn ? 'cards in' : 'invited', when, photos, cards, cardNames: cards.map(c => c.name).join(', '), note: facts.join(' · ') || 'Nothing sent yet.' };
+    };
+    const pendingAll = liveOn ? liveRows.filter(r => ['invited', 'draft', 'to_approve'].includes(r.status)).map(shapeLive) : [...PENDING.filter(p => !approved.includes(p.id)), ...invites];
+    const mockCand = PENDING.find(p => p.id === this.state.candId) || PENDING[0];
+    const cand = liveOn ? (liveRows.filter(r => r.id === this.state.candId).map(shapeLive)[0] || pendingAll[0] || { ...mockCand, photos: mockCand.photos.map(label => ({ label, bg: '' })) }) : { ...mockCand, photos: mockCand.photos.map(label => ({ label, bg: '' })) };
+    const liveActive = liveRows.filter(r => r.status === 'active').map(r => ({ id: r.id, name: [r.first_name, r.surname].filter(Boolean).join(' '), trade: r.trade || 'Trade not given', cards: (r.operative_cards || []).map(c => c.name).join(', ') || 'No cards yet', tone: 'ok', word: 'valid' }));
     const invValid = inv.name.trim().length > 1 && inv.phone.replace(/\D/g, '').length >= 10;
     const unit = EQUIPMENT.find(e => e.id === this.state.unitId) || EQUIPMENT[0];
     const isDetail = screen === 'detail', isClaim = screen === 'claim', isSent = screen === 'sent', isOperative = screen === 'operative', isProject = screen === 'project';
@@ -1059,8 +1105,8 @@ class Component extends DCLogic {
     const ct = contractors.find(c => c.id === this.state.ctId) || contractors[0];
     const opRaw = OPERATIVES.find(o => o.id === this.state.opId) || OPERATIVES[0];
     const op = { ...opRaw, hasTraining: (opRaw.training || []).length > 0, noTraining: (opRaw.training || []).length === 0, rows: [ { k: 'Mobile', v: opRaw.phone }, { k: 'Started', v: opRaw.started }, { k: 'NI number', v: opRaw.ni }, { k: 'Emergency contact', v: opRaw.emergency } ] };
-    const pending = pendingAll.map(p => ({ ...p, meta: p.trade + ' · ' + p.when, tone: p.status === 'cards in' ? 'warn' : 'info', word: p.status === 'cards in' ? 'to approve' : 'invited', disabled: p.status !== 'cards in', cursor: p.status === 'cards in' ? 'pointer' : 'default', open: () => this.go('approve', { candId: p.id, from: 'operatives' }) }));
-    const operatives = [...OPERATIVES, ...PENDING.filter(p => approved.includes(p.id)).map(p => ({ id: p.id, name: p.fullName, trade: p.trade, cards: p.cards.map(c => c.name).join(', '), tone: 'ok', word: 'valid' }))].map(o => ({ ...o, cards: o.note ? o.note : o.cards, open: () => OPERATIVES.find(x => x.id === o.id) && this.go('operative', { opId: o.id, from: 'operatives' }) }));
+    const pending = pendingAll.map(p => ({ ...p, meta: p.trade + ' · ' + p.when, tone: p.status === 'cards in' ? 'warn' : 'info', word: p.status === 'cards in' ? 'to approve' : 'invited', disabled: p.status !== 'cards in', cursor: p.status === 'cards in' ? 'pointer' : 'default', open: () => p.live ? this.openCandidate(p.id) : this.go('approve', { candId: p.id, from: 'operatives' }) }));
+    const operatives = [...liveActive, ...OPERATIVES, ...PENDING.filter(p => approved.includes(p.id)).map(p => ({ id: p.id, name: p.fullName, trade: p.trade, cards: p.cards.map(c => c.name).join(', '), tone: 'ok', word: 'valid' }))].map(o => ({ ...o, cards: o.note ? o.note : o.cards, open: () => OPERATIVES.find(x => x.id === o.id) && this.go('operative', { opId: o.id, from: 'operatives' }) }));
     const equipment = EQUIPMENT.map(e => ({ ...e, open: () => this.go('unit', { unitId: e.id, from: 'equipment' }) }));
     const cardKeys = [], cardTitles = {}; let cardOpts = {};
     const reg = (k, t) => { cardKeys.push(k); cardTitles[k] = t; };
@@ -1083,7 +1129,7 @@ class Component extends DCLogic {
       : isOperative ? { cards: op.cardList.length + ' cards', training: op.hasTraining ? op.training.length + ' on record' : 'None yet', details: op.phone } 
       : isUnit ? { certs: unit.certs.length + ' items', details: unit.rows[0].v, history: unit.history.length + ' checks' }
       : isContractor ? { projects: ct.projectCount + (ct.projectCount === '1' ? ' project' : ' projects'), money: ct.heldText, paying: ct.paysIn + ' on ' + ct.terms + '-day terms', contacts: ct.contacts.length + ' people', details: ct.address, history: ct.hasHistory ? ct.history.length + ' sent' : 'Nothing sent yet' }
-      : isCompany ? { mailbox: mailboxOn ? 'Connected' : 'Not connected', people: PEOPLE.length + ' people', details: 'Woodleys' }
+      : isCompany ? { mailbox: mailboxOn ? 'Connected' : 'Not connected', people: PEOPLE.length + ' people', details: 'Woodleaze' }
       : isDetail ? { contract: sel.contractor + ' · ' + sel.sumText, history: sel.hasHistory ? sel.history.length + ' sent' : 'Nothing sent yet' } : {};
     const lv = this.layoutVals(screen, cardKeys, cardTitles, cardOpts);
     const canClaim = isDetail && (sel.status === 'overdue' || sel.status === 'due');
@@ -1106,11 +1152,18 @@ class Component extends DCLogic {
       onInvName: e => this.setState({ inv: { ...inv, name: e.target.value } }),
       onInvPhone: e => this.setState({ inv: { ...inv, phone: e.target.value } }),
       onInvStart: e => this.setState({ inv: { ...inv, start: e.target.value } }),
-      inviteText: 'Hi ' + (inv.name.trim() || 'Tom') + ', David at Woodleys has added you. Tap the link, photograph your cards and you\'re set for ' + (inv.start.trim() || 'your first day') + '. Link works once, for 7 days.',
-      inviteExpiry: new Date(TODAY.getTime() + 7 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-      invitedHeadline: 'Sent to ' + inv.name.trim() + ' on ' + inv.phone.trim() + '.',
-      sendInvite: e => { e && e.preventDefault && e.preventDefault(); if (!invValid) return; this.go('invited', { invites: [...invites, { id: 'inv' + Date.now(), name: inv.name.trim(), phone: inv.phone.trim(), trade: 'Trade not given yet', status: 'invited', when: 'Link sent today' }] }); },
-      approve: e => { e && e.preventDefault && e.preventDefault(); this.go('approved', { approved: [...approved, cand.id] }); },
+      inviteText: 'Hi ' + (inv.name.trim() || 'Tom') + ', David at Woodleaze has added you. Tap the link, photograph your cards and you\'re set for ' + (inv.start.trim() || 'your first day') + '. Link works once, for 7 days.',
+      inviteExpiry: new Date(this.state.inviteResult && this.state.inviteResult.expiresAt ? this.state.inviteResult.expiresAt : TODAY.getTime() + 7 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      invitedHeadline: (this.state.inviteResult && !this.state.inviteResult.sent ? 'Link ready for ' : 'Sent to ') + inv.name.trim() + (this.state.inviteResult && !this.state.inviteResult.sent ? '.' : ' on ' + inv.phone.trim() + '.'),
+      candDetailsNote: cand.live ? '· typed by them' : '· filled by For', candCardsNote: cand.live ? '· number and date to check' : '· read by For',
+      inviteError: this.state.inviteError, candIntro: cand.live ? 'They typed these and photographed the rest. Open a photo to check it against what they typed, then approve. Nothing is added until you do.' : 'For read these from the photos. Change anything that\'s wrong, then approve. Nothing is added until you do.',
+      hasInviteLink: !!(this.state.inviteResult && this.state.inviteResult.link), inviteLink: this.state.inviteResult ? this.state.inviteResult.link : '',
+      inviteSentLine: this.state.inviteResult ? (this.state.inviteResult.sent ? 'Texted to ' + inv.phone.trim() + '. The same link, if you want to send it another way:' : 'Texts aren\'t set up yet, so send this to ' + inv.phone.trim() + ' yourself:') : '',
+      copyLabel: this.state.copied ? 'Copied' : 'Copy link', canShare: !!navigator.share,
+      copyInviteLink: () => { const l = this.state.inviteResult && this.state.inviteResult.link; if (!l) return; navigator.clipboard.writeText(l).then(() => this.setState({ copied: true })).catch(() => {}); },
+      shareInviteLink: () => { const r = this.state.inviteResult; if (r && navigator.share) navigator.share({ text: r.text || r.link }).catch(() => {}); },
+      sendInvite: e => { e && e.preventDefault && e.preventDefault(); if (!invValid || this.state.busy) return; if (liveOn) { this.sendLiveInvite(inv); return; } this.go('invited', { invites: [...invites, { id: 'inv' + Date.now(), name: inv.name.trim(), phone: inv.phone.trim(), trade: 'Trade not given yet', status: 'invited', when: 'Link sent today' }] }); },
+      approve: e => { e && e.preventDefault && e.preventDefault(); if (this.state.busy) return; if (cand.live) { this.approveLive(cand.id); return; } this.go('approved', { approved: [...approved, cand.id] }); },
       goBack: () => this.goBack(),
       backStyle: { position: 'fixed', bottom: 39, left: 44, width: 44, height: 44, padding: 0, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 400, opacity: (this.state.history || []).length > 0 || !isToday ? 1 : 0, pointerEvents: (this.state.history || []).length > 0 || !isToday ? 'auto' : 'none', transition: 'opacity .25s ease, transform .25s cubic-bezier(.25,.46,.45,.94)' },
       backIconSize: 23,
@@ -1140,9 +1193,9 @@ class Component extends DCLogic {
       subline: overdue ? 'Overdue first. Tap a job to claim.' : 'Nothing overdue. Tap a job to see the dates.',
       items, sel,
       operatives,
-      opsHeadline: (OPERATIVES.length + approved.length) + ' operatives, 1 card expiring.',
+      opsHeadline: (OPERATIVES.length + approved.length + liveActive.length) + ' operatives, 1 card expiring.',
       people: PEOPLE,
-      companyRows: [ { k: 'Trading name', v: 'Woodleys' }, { k: 'Phone', v: '07734 373852' }, { k: 'Company number', v: '09876543' }, { k: 'VAT number', v: 'GB 123 4567 89' }, { k: 'Address', v: 'Unit 4, Cheney Manor, Swindon SN2 2PJ' } ],
+      companyRows: [ { k: 'Trading name', v: 'Woodleaze' }, { k: 'Phone', v: '07734 373852' }, { k: 'Company number', v: '09876543' }, { k: 'VAT number', v: 'GB 123 4567 89' }, { k: 'Address', v: 'Unit 4, Cheney Manor, Swindon SN2 2PJ' } ],
       mailboxAddress: mailboxOn ? 'david@woodleazegroundworks.co.uk' : 'No mailbox connected',
       mailboxMeta: mailboxOn ? 'Microsoft 365 · last checked 2 minutes ago' : 'Google or Microsoft 365. Takes a minute.',
       mailboxTone: mailboxOn ? 'ok' : 'bad', mailboxWord: mailboxOn ? 'connected' : 'not connected', mailboxMissing: !mailboxOn,
@@ -1152,14 +1205,14 @@ class Component extends DCLogic {
       today: dShort(TODAY.toISOString()),
       hasAction, showSecondary: (isClaim && !drafting) || isApprove,
       secondaryLabel: isApprove ? 'Ask for a retake' : 'Not yet',
-      primaryLabel: isClaim ? (mailboxOn ? 'Send the claim' : 'Connect mailbox') : isInvite ? 'Send the link' : isApprove ? 'Approve and add' : (isSent || isInvited || isApproved) ? 'Back to ' + (((this.state.history || [])[0] || {}).screen || 'today') : 'Claim now',
-      primaryDisabled: (isClaim && mailboxOn && !draft.trim()) || (isInvite && !invValid),
+      primaryLabel: isClaim ? (mailboxOn ? 'Send the claim' : 'Connect mailbox') : isInvite ? (this.state.busy ? 'Sending…' : 'Send the link') : isApprove ? (this.state.busy ? 'Approving…' : 'Approve and add') : (isSent || isInvited || isApproved) ? 'Back to ' + (((this.state.history || [])[0] || {}).screen || 'today') : 'Claim now',
+      primaryDisabled: (isClaim && mailboxOn && !draft.trim()) || (isInvite && !invValid) || this.state.busy,
       primaryAction: () => {
         if (isDetail) this.startClaim(sel);
         else if (isClaim && !mailboxOn) this.go('company', { from: 'company' });
         else if (isClaim) this.send(sel);
-        else if (isInvite) { if (invValid) this.go('invited', { invites: [...invites, { id: 'inv' + Date.now(), name: inv.name.trim(), phone: inv.phone.trim(), trade: 'Trade not given yet', status: 'invited', when: 'Link sent today' }] }); }
-        else if (isApprove) this.go('approved', { approved: [...approved, cand.id] });
+        else if (isInvite) { if (invValid && !this.state.busy) liveOn ? this.sendLiveInvite(inv) : this.go('invited', { invites: [...invites, { id: 'inv' + Date.now(), name: inv.name.trim(), phone: inv.phone.trim(), trade: 'Trade not given yet', status: 'invited', when: 'Link sent today' }] }); }
+        else if (isApprove) { if (this.state.busy) return; cand.live ? this.approveLive(cand.id) : this.go('approved', { approved: [...approved, cand.id] }); }
         else this.goUp();
       },
       wideProps: { style: { width: '100%', height: 52, fontSize: 16 } },
