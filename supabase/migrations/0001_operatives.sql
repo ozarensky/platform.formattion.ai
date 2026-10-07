@@ -13,7 +13,7 @@
 
 create table public.tenants (
   id          uuid primary key default gen_random_uuid(),
-  name        text not null,                      -- "Harlow Groundworks Ltd"
+  name        text not null,                      -- "Woodleys"
   created_at  timestamptz not null default now()
 );
 

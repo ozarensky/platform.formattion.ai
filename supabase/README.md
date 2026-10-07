@@ -60,7 +60,7 @@ The migration adds a trigger: every new sign-up gets a tenant of their own and a
 
 ```sql
 -- SQL Editor
-insert into public.tenants (name) values ('Harlow Groundworks Ltd') returning id;
+insert into public.tenants (name) values ('Woodleys') returning id;
 -- copy the id, then (your user id is under Authentication → Users):
 insert into public.memberships (user_id, tenant_id, role)
 values ('<your-user-id>', '<tenant-id>', 'owner');
@@ -109,7 +109,7 @@ How it reaches the operative is a setting:
 1. **Share sheet / copy** (no account needed): `create-invite` returns the link and the
    platform opens the phone's share menu, or copies it. Start here.
 2. **SMS**: add a Twilio (or Vonage / MessageBird) account, put the keys in Secrets, and
-   `create-invite` sends "Dan at Harlow Groundworks has sent you a link to join the
+   `create-invite` sends "David at Woodleys has sent you a link to join the
    team: … It works until 14 Oct." Around 4–5p per text in the UK.
 3. **WhatsApp Business API** via Twilio: same code path, but Meta approves the message
    template first.
@@ -137,7 +137,7 @@ The form collects NI numbers, bank details, right-to-work documents and a signat
 all personal data under UK GDPR, and right-to-work copies carry a statutory retention
 (two years after the person leaves). Before going live:
 
-- add a consent line on **Check and sign** ("Harlow Groundworks will keep this to pay
+- add a consent line on **Check and sign** ("Woodleys will keep this to pay
   you and prove your right to work; see our privacy notice");
 - set a retention: a scheduled query that deletes bank rows and right-to-work files a
   fixed time after `status = 'left'`;

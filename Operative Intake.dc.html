@@ -287,7 +287,7 @@
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 402, &quot;height&quot;: 874}, &quot;subcontractor&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Harlow Groundworks&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;contact&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Dan&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;firstName&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Tom&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startDate&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Monday 5 October&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startStep&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 0, &quot;min&quot;: 0, &quot;max&quot;: 8, &quot;step&quot;: 1, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Preview&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 402, &quot;height&quot;: 874}, &quot;subcontractor&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Woodleys&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;contact&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;David&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;firstName&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Tom&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startDate&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Monday 5 October&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startStep&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 0, &quot;min&quot;: 0, &quot;max&quot;: 8, &quot;step&quot;: 1, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Preview&quot;}}">
 const KEY = 'intake:demo';
 const TRADES = ['Groundworker', 'Excavator operator', 'Dumper driver', 'Pipelayer', 'Labourer', 'Banksman', 'Something else'];
 const READS = [
@@ -321,7 +321,7 @@ class Component extends DCLogic {
   pt(e) { const r = this.sigRef.current.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
   renderVals() {
     const { step, d, cards } = this.state;
-    const sub = this.props.subcontractor || 'Harlow Groundworks', contact = this.props.contact || 'Dan', first = this.props.firstName || 'Tom', start = this.props.startDate || 'Monday 5 October';
+    const sub = this.props.subcontractor || 'Woodleys', contact = this.props.contact || 'David', first = this.props.firstName || 'Tom', start = this.props.startDate || 'Monday 5 October';
     const set = {}; Object.keys(EMPTY).forEach(k => { set[k] = e => this.setD(k, e && e.target ? e.target.value : e); });
     const s = {}; for (let i = 0; i <= 8; i++) s['s' + i] = step === i;
     const rtw = RTW.find(r => r.id === d.rtw);
