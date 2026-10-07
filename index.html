@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI for the trades. Automation for the business.</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="assets/config.js"></script>
 <script src="assets/auth.js"></script>
@@ -24,27 +25,29 @@
     html, body { min-height: 100%; }
     a { color: var(--ink); text-decoration: none; }
     a:hover { opacity: .45; }
+    [data-theme="dark"] .lockup-ink, .dark .lockup-ink { display:none !important } [data-theme="dark"] .lockup-bright, .dark .lockup-bright { display:block !important }
   </style>
   <script src="assets/scroll-pill.js"></script>
+  <script src="assets/typed-headline.js"></script>
 </helmet>
 
 <div data-screen-label="Landing" style="min-height:100vh;background:var(--bg);font-family:var(--sans);color:var(--ink-body);display:flex;flex-direction:column">
 
   <header style="display:flex;align-items:center;justify-content:flex-end;padding:clamp(20px,4vw,32px) clamp(20px,4vw,40px);gap:24px;margin-top:{{ safeTop }}">
-    <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Lockup" height="{{ lockupHeight }}" base="assets/" hint-size="220px,20px"></x-import>
+    <div aria-label="platform formattion ai" style="display:flex;align-items:center"><img class="lockup-ink" src="assets/lockup-login.svg" alt="platform formattion ai" style="display:block;height:18px;width:auto"><img class="lockup-bright" src="assets/lockup-login-bright.svg" alt="" style="display:none;height:18px;width:auto"></div>
   </header>
 
   <main style="flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:clamp(32px,6vw,64px);align-items:center;max-width:1120px;width:100%;margin:0 auto;padding:clamp(16px,4vw,40px) clamp(20px,4vw,40px) 64px">
 
-    <section style="display:flex;flex-direction:column;max-width:560px">
-      <h1 style="font-size:clamp(32px,5vw,44px);font-weight:300;line-height:1.1;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">The platform for the people doing the work.</h1>
+    <section style="display:flex;flex-direction:column;width:100%;order:2;justify-self:stretch">
+      <h1 style="margin:0;color:var(--ink);width:100%"><svg class="fm-typed-headline" role="img" aria-label="AI for the trades. Automation for the business." style="display:block;width:100%;height:auto;overflow:visible"><title>AI for the trades. Automation for the business.</title></svg></h1>
     </section>
 
-    <section aria-label="Log in" style="background:var(--bg2);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:24px;width:100%;max-width:440px;justify-self:end">
+    <section aria-label="Log in" style="background:var(--bg2);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:24px;width:100%;max-width:440px;order:1;justify-self:start">
       <h2 style="font-size:20px;font-weight:500;color:var(--ink);line-height:1.2">Log in</h2>
       <form style="display:flex;flex-direction:column;gap:16px" onSubmit="{{ onSubmit }}">
         <sc-if value="{{ stepContact }}" hint-placeholder-val="{{ true }}">
-          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Email or mobile" type="text" placeholder="Email or mobile" value="{{ contact }}" on-change="{{ onContact }}" hint="We'll text or email you a code." hint-size="100%,96px"></x-import>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" type="email" placeholder="Email" value="{{ contact }}" on-change="{{ onContact }}" hint="We'll email you a code." hint-size="100%,96px"></x-import>
         </sc-if>
         <sc-if value="{{ stepCode }}" hint-placeholder-val="{{ false }}">
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="{{ codeLabel }}" type="text" placeholder="000000" value="{{ code }}" on-change="{{ onCode }}" hint="Lasts 10 minutes." hint-size="100%,96px"></x-import>
@@ -70,7 +73,7 @@
   </main>
 
   <footer style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 clamp(20px,4vw,40px) 28px;font-size:10px;letter-spacing:.1em;color:var(--muted);flex-wrap:wrap">
-    <a href="https://formattion.ai" target="_blank" rel="noopener" aria-label="formattion ai" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin-left:-12px"><svg viewBox="0 0 284.21 284.21" style="width:20px;height:20px;display:block;color:var(--ink)" aria-hidden="true"><path fill="currentColor" d="M274.11,132.33h-89.21c-7.09,0-10.63-8.57-5.62-13.58l63.04-63.04c3.7-3.7,4.16-9.74.68-13.65-3.77-4.25-10.28-4.4-14.24-.44l-63.3,63.3c-5.01,5.01-13.58,1.46-13.58-5.62V9.78c0-5.4-4.38-9.78-9.78-9.78h0c-5.4,0-9.78,4.38-9.78,9.78v89.54c0,7.09-8.57,10.63-13.58,5.62l-63.32-63.32c-3.97-3.97-10.5-3.81-14.27.47-3.44,3.91-3,9.9.68,13.59l63.08,63.08c5.01,5.01,1.46,13.58-5.62,13.58H10.1c-5.38,0-10,4.21-10.1,9.59-.1,5.48,4.31,9.96,9.77,9.96h89.53c7.09,0,10.63,8.57,5.62,13.58l-63.06,63.06c-3.68,3.68-4.12,9.67-.68,13.59,3.76,4.29,10.3,4.44,14.27.48l63.31-63.31c5.01-5.01,13.58-1.46,13.58,5.62v89.53c0,5.4,4.38,9.78,9.78,9.78h0c5.4,0,9.78-4.38,9.78-9.78v-89.52c0-7.09,8.57-10.63,13.58-5.62l63.06,63.06c3.68,3.68,9.67,4.12,13.59.68,4.29-3.77,4.44-10.3.48-14.27l-63.3-63.3c-5.01-5.01-1.46-13.58,5.62-13.58h89.53c5.46,0,9.87-4.48,9.77-9.96-.1-5.38-4.72-9.59-10.1-9.59Z"/></svg></a>
+    <a href="https://formattion.ai" target="_blank" rel="noopener" aria-label="formattion ai" style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin-left:-12px;opacity:1;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="opacity:1;transform:scale(1.1)"><svg viewBox="0 0 284.21 284.21" style="width:20px;height:20px;display:block;color:var(--ink)" aria-hidden="true"><path fill="currentColor" d="M274.11,132.33h-89.21c-7.09,0-10.63-8.57-5.62-13.58l63.04-63.04c3.7-3.7,4.16-9.74.68-13.65-3.77-4.25-10.28-4.4-14.24-.44l-63.3,63.3c-5.01,5.01-13.58,1.46-13.58-5.62V9.78c0-5.4-4.38-9.78-9.78-9.78h0c-5.4,0-9.78,4.38-9.78,9.78v89.54c0,7.09-8.57,10.63-13.58,5.62l-63.32-63.32c-3.97-3.97-10.5-3.81-14.27.47-3.44,3.91-3,9.9.68,13.59l63.08,63.08c5.01,5.01,1.46,13.58-5.62,13.58H10.1c-5.38,0-10,4.21-10.1,9.59-.1,5.48,4.31,9.96,9.77,9.96h89.53c7.09,0,10.63,8.57,5.62,13.58l-63.06,63.06c-3.68,3.68-4.12,9.67-.68,13.59,3.76,4.29,10.3,4.44,14.27.48l63.31-63.31c5.01-5.01,13.58-1.46,13.58,5.62v89.53c0,5.4,4.38,9.78,9.78,9.78h0c5.4,0,9.78-4.38,9.78-9.78v-89.52c0-7.09,8.57-10.63,13.58-5.62l63.06,63.06c3.68,3.68,9.67,4.12,13.59.68,4.29-3.77,4.44-10.3.48-14.27l-63.3-63.3c-5.01-5.01-1.46-13.58,5.62-13.58h89.53c5.46,0,9.87-4.48,9.77-9.96-.1-5.38-4.72-9.59-10.1-9.59Z"/></svg></a>
     <div style="display:flex;align-items:center;gap:24px">
       <a href="#" style="color:var(--muted)">PRIVACY</a>
       <a href="#" style="color:var(--muted)">TERMS</a>
@@ -87,13 +90,15 @@ class Component extends DCLogic {
     try { const st = +new URLSearchParams(location.search).get('top') || 0; if (st) this.setState({ safeTop: st }); } catch (e) {}
     if (window.fpAuth) window.fpAuth.redirectIfSignedIn('Platform.dc.html');
     this.tuneInputs();
+    const tryMount = (n) => { if (window.fmTypedHeadline) window.fmTypedHeadline.mount(); else if (n > 0) setTimeout(() => tryMount(n - 1), 100); };
+    tryMount(50);
   }
   componentDidUpdate() { this.tuneInputs(); }
   componentWillUnmount() { clearInterval(this.timer); }
   // The DS Input has no props for these; set them so phones offer the right keyboard and fill the code from the email.
   tuneInputs() {
     const set = (sel, attrs) => { const el = document.querySelector(sel); if (el) Object.keys(attrs).forEach(k => el.setAttribute(k, attrs[k])); };
-    set('input[placeholder="Email or mobile"]', { autocomplete: 'email', inputmode: 'email', autocapitalize: 'off', spellcheck: 'false' });
+    set('input[placeholder="Email"]', { autocomplete: 'email', inputmode: 'email', autocapitalize: 'off', spellcheck: 'false' });
     set('input[placeholder="000000"]', { autocomplete: 'one-time-code', inputmode: 'numeric', pattern: '[0-9]*' });
   }
   startCooldown() {
@@ -132,7 +137,7 @@ class Component extends DCLogic {
       toggleWidth: 34,
       showError: !!error,
       errorText: error,
-      codeLabel: 'Code ' + (isPhone ? 'texted to ' : 'emailed to ') + contact.trim(),
+      codeLabel: 'Code emailed to ' + contact.trim(),
       busy,
       submitLabel: busy ? (stepContact ? 'Sending…' : 'Checking…') : (stepContact ? 'Send code' : 'Log in'),
       resendLabel: cooldown > 0 ? 'Send again in ' + cooldown + 's' : 'Send again',
