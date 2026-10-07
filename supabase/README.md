@@ -59,15 +59,32 @@ The migration adds a trigger: every new sign-up gets a tenant of their own and a
 `owner` membership. Your existing log-in predates it, so do it once by hand:
 
 ```sql
--- SQL Editor. Find your user id under Authentication → Users first.
-with t as (insert into public.tenants (name) values ('Woodleaze') returning id)
+-- SQL Editor. Finds your user from the email you log in with.
+with me as (select id from auth.users where email = '<your-email>'),
+     t  as (insert into public.tenants (name) values ('Woodleaze') returning id)
 insert into public.memberships (user_id, tenant_id, role)
-select '<your-user-id>', id, 'owner' from t;
+select me.id, t.id, 'owner' from me, t;
 ```
 
-The form's welcome screen says "David has invited you". It takes the name from the
-inviter's log-in: **Authentication → Users → your user → User Metadata** → add
-`{"first_name": "David"}`. Without it, it uses the part of the email before the @.
+Roles: `owner` and `manager` are the client's own people; `formattion` is formattion.ai
+staff working inside the client's account to build and support it. Policies only check
+membership, not role, so all three see the same thing. Check with:
+
+```sql
+select t.name, u.email, m.role from public.memberships m
+join public.tenants t on t.id = m.tenant_id join auth.users u on u.id = m.user_id;
+```
+
+The form's welcome screen and the text say "Ion at Woodleaze has added you". The name
+comes from the inviter's log-in; set it once:
+
+```sql
+update auth.users
+set raw_user_meta_data = coalesce(raw_user_meta_data, '{}'::jsonb) || '{"first_name": "Ion"}'
+where email = '<your-email>';
+```
+
+Without it, the part of the email before the @ is used.
 
 ## Step 3 — Deploy the Edge Functions (5 minutes)
 
