@@ -258,7 +258,7 @@ a:hover{opacity:.45}
 <div style="min-height:100vh;background:var(--bg);font-family:var(--sans);color:var(--ink-body);display:flex;flex-direction:column">
 
   <header style="position:fixed;top:10px;left:10px;right:10px;height:52px;border-radius:12px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:50;max-width:480px;margin:0 auto">
-    <span style="font-size:14px;font-weight:500;color:var(--ink)">{{ subcontractor }}</span>
+    <sc-if value="{{ hasLogo }}" hint-placeholder-val="{{ true }}"><img src="{{ logoSrc }}" alt="{{ subcontractor }}" style="height:22px;max-width:200px;display:block;object-fit:contain"></sc-if><sc-if value="{{ noLogo }}" hint-placeholder-val="{{ false }}"><span style="font-size:14px;font-weight:500;color:var(--ink)">{{ subcontractor }}</span></sc-if>
     <span style="font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums">{{ stepLabel }}</span>
   </header>
   <div style="position:fixed;top:66px;left:26px;right:26px;height:6px;z-index:50;max-width:448px;margin:0 auto;display:{{ progressDisplay }}"><div style="height:6px;border-radius:999px;background:var(--ink);width:{{ progressWidth }};transition:width .3s cubic-bezier(.4,0,.2,1)"></div></div>
@@ -663,6 +663,8 @@ a:hover{opacity:.45}
 <script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;: {&quot;width&quot;: 402, &quot;height&quot;: 874}, &quot;subcontractor&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Woodleaze&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;contact&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;David&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;firstName&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Tom&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startDate&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Monday 5 October&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startStep&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 0, &quot;min&quot;: 0, &quot;max&quot;: 9, &quot;step&quot;: 1, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Preview&quot;}, &quot;showCamera&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Preview&quot;}}">
 const cap = v => v.charAt(0).toUpperCase() + v.slice(1);
 const KEY = 'intake:demo';
+// Client logos for the header, by company name. Text when a client has none yet.
+const LOGOS = { Woodleaze: 'assets/clients/woodleaze/lockup-short.svg' };
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
 const READS = [
   { name: 'CSCS Green', detail: 'No. 01234567 · to 18 Feb 2029', tone: 'ok', word: 'valid' },
@@ -764,7 +766,7 @@ class Component extends DCLogic {
     const total = 8;
     const labels = ['', 'About you', 'Your photo', 'Driving licence', 'Your cards', 'Right to work', 'Getting paid', 'Emergency contact', 'Check and sign'];
     return {
-      subcontractor: sub, contact, ...s,
+      subcontractor: sub, contact, logoSrc: LOGOS[sub] || '', hasLogo: !!LOGOS[sub], noLogo: !LOGOS[sub], ...s,
       welcomeTitle: 'Hi ' + first + ', welcome to ' + sub + '.',
       stepLabel: step === 0 ? 'About 2 minutes' : step === 9 ? 'Done' : step + ' of ' + total,
       progressDisplay: step > 0 && step < 9 ? 'block' : 'none', progressWidth: Math.round((step / total) * 100) + '%',
