@@ -20,7 +20,9 @@ create table public.tenants (
 create table public.memberships (
   user_id     uuid not null references auth.users (id) on delete cascade,
   tenant_id   uuid not null references public.tenants (id) on delete cascade,
-  role        text not null default 'manager' check (role in ('owner', 'manager')),
+  -- owner / manager: the client's own people. formattion: formattion.ai staff
+  -- working inside the client's account to build and support it.
+  role        text not null default 'manager' check (role in ('owner', 'manager', 'formattion')),
   created_at  timestamptz not null default now(),
   primary key (user_id, tenant_id)
 );
