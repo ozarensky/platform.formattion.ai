@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>formattion preview</title>
+<link rel="icon" href="../assets/mark.svg">
+<style>
+  /* Platform paper and ink. Card radius 20 with 8 inset, so the rows inside are radius 12. */
+  :root { --bg: #F4EFE6; --bg2: #ECE6DC; --work: #FBF9F5; --ink: #000; --muted: #7A6F64; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  main { max-width: 480px; margin: 0 auto; padding: calc(48px + env(safe-area-inset-top, 0px)) 20px 40px; display: flex; flex-direction: column; gap: 24px; }
+  h1 { font-size: 28px; font-weight: 500; line-height: 1.2; letter-spacing: -.01em; margin: 0 16px; }
+  p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0 16px; }
+  .card { background: var(--bg2); border-radius: 20px; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+  a { display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: center; gap: 12px; background: var(--work); border-radius: 12px; padding: 16px 4px 16px 16px; color: var(--ink); text-decoration: none; }
+  a span { display: flex; flex-direction: column; gap: 4px; }
+  a b { font-size: 17px; font-weight: 500; }
+  a small { font-size: 14px; color: var(--muted); }
+  a svg { justify-self: center; transition: transform .25s cubic-bezier(.25,.46,.45,.94); }
+  a:hover svg, a:focus-visible svg { transform: translateX(5px); }
+  a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Preview</h1>
+  <p>The next version, before it goes live. Sample data only; nothing you do here is saved.</p>
+  <nav class="card">
+    <a href="join.html"><span><b>Intake form</b><small>What an operative fills in from their invite</small></span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    <a href="platform.html"><span><b>Platform</b><small>The manager view, every screen through the menu</small></span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </nav>
+</main>
+</body>
+</html>
