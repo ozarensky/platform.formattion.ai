@@ -606,7 +606,7 @@ a:hover{opacity:.45}
     <div role="dialog" aria-label="Camera" style="position:fixed;inset:0;z-index:110;background:#000;display:flex;flex-direction:column;font-family:var(--sans)">
       <div style="position:relative;flex:1;min-height:0;overflow:hidden">
         <sc-if value="{{ camLive }}" hint-placeholder-val="{{ true }}"><video ref="{{ videoRef }}" sc-camel-auto-play="{{ true }}" sc-camel-plays-inline="{{ true }}" muted="{{ true }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:{{ camMirror }}"></video></sc-if>
-        <sc-if value="{{ camShot }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:84px 20px 20px;box-sizing:border-box"><div style="background:#1C1F22;border-radius:20px;padding:8px;display:flex;max-width:100%;max-height:100%;box-sizing:border-box"><sc-if value="{{ camShot }}" hint-placeholder-val="{{ false }}"><div role="img" aria-label="{{ camTitle }}" style="width:min(100%, 480px);height:calc(100vh - 240px);max-height:640px;background:center/contain no-repeat;background-image:{{ camShotBg }}"></div></sc-if></div></div></sc-if>
+        <sc-if value="{{ camShot }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:84px 20px 20px;box-sizing:border-box"><div style="background:#1C1F22;border-radius:20px;padding:8px;display:flex;max-width:100%;max-height:100%;box-sizing:border-box"><sc-if value="{{ camShot }}" hint-placeholder-val="{{ false }}"><div role="img" aria-label="{{ camTitle }}" style="width:min(calc(100vw - 56px), 480px);height:calc(100vh - 240px);max-height:640px;border-radius:12px;background:center/contain no-repeat;background-image:{{ camShotBg }}"></div></sc-if></div></div></sc-if>
         <sc-if value="{{ camError }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background:#1C1F22"></div></sc-if>
         <sc-if value="{{ camLive }}" hint-placeholder-val="{{ true }}">
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;padding:88px 28px 32px">
@@ -680,6 +680,18 @@ const RTW = [
 const EMPTY = { licFront: '', licBack: '', licPoints: '', licNumber: '', licExpiry: '', firstName: '', surname: '', gender: '', dob: '', trade: '', address: '', rtw: '', rtwPhoto: '', shareCode: '', ni: '', accountName: '', sortCode: '', account: '', ecName: '', ecRel: '', ecPhone: '', selfie: '', postcode: '', addrLine: '', addrLine2: '', addrTown: '', signed: false };
 const PC_RE = /^[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}$/;
 const fmtPc = v => { const c = v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7); return c.length > 4 ? c.slice(0, -3) + ' ' + c.slice(-3) : c; };
+// Photo as a CSS background. The runtime splits inline styles on ';', which cuts a
+// data: URL (data:image/jpeg;base64,…) in half, so data URLs go in as blob: URLs.
+const BLOBS = new Map();
+const bg = src => {
+  if (!src || src === 'kept') return 'none';
+  if (src.startsWith('data:')) {
+    let u = BLOBS.get(src);
+    if (!u) { const i = src.indexOf(','), bin = atob(src.slice(i + 1)), a = new Uint8Array(bin.length); for (let j = 0; j < bin.length; j++) a[j] = bin.charCodeAt(j); u = URL.createObjectURL(new Blob([a], { type: src.slice(5, i).split(';')[0] })); BLOBS.set(src, u); }
+    src = u;
+  }
+  return 'url("' + src + '")';
+};
 class Component extends DCLogic {
   state = { step: 0, d: { ...EMPTY }, cards: [], resumed: false, cal: {}, preview: null, camera: null, shot: null };
   sigRef = React.createRef(); videoRef = React.createRef(); guideRef = React.createRef();
@@ -783,7 +795,7 @@ class Component extends DCLogic {
         onSelfieFile: () => this.setState({ camera: { handler: 'onSelfieFile', facing: 'user', aspect: '3/4', radius: 20, title: 'Your photo', hint: 'Head and shoulders, no hat or glasses.' } }) },
       camOpen: !!this.state.camera, camLive: !!this.state.camera && !this.state.shot && !(this.state.camera && this.state.camera.error), camShot: !!this.state.shot, camError: !!(this.state.camera && this.state.camera.error && !this.state.shot),
       camTitle: this.state.camera ? this.state.camera.title : '', camHint: this.state.camera ? (this.state.camera.hint || '') : '', camAspect: this.state.camera ? this.state.camera.aspect : '85/54', camGuideRadius: this.state.camera ? this.state.camera.radius + 'px' : '12px',
-      camMirror: this.state.camera && this.state.camera.facing === 'user' ? 'scaleX(-1)' : 'none', camShotBg: this.state.shot ? 'url(' + this.state.shot + ')' : 'none',
+      camMirror: this.state.camera && this.state.camera.facing === 'user' ? 'scaleX(-1)' : 'none', camShotBg: bg(this.state.shot),
       videoRef: this.videoRef, guideRef: this.guideRef,
       camClose: () => { this.stopCamera(); this.setState({ camera: null, shot: null }); },
       camFlip: () => this.setState({ camera: { ...this.state.camera, facing: this.state.camera.facing === 'user' ? 'environment' : 'user', error: false } }),
@@ -794,7 +806,7 @@ class Component extends DCLogic {
       showAddRow: !pendingBack && cards.length > 0 && !this.state.addingCard,
       showAddOptions: !pendingBack && (cards.length === 0 || !!this.state.addingCard),
       startAddCard: () => this.setState({ addingCard: true }),
-      cards: cards.map(c => { const needsBack = !c.back && !c.reading; return { ...c, needsBack, complete: !needsBack, shootBack: () => this.openBackCamera(), bg: c.src ? 'url(' + c.src + ')' : 'none', backBg: c.back && c.back !== 'kept' ? 'url(' + c.back + ')' : 'none', backBorder: c.back ? 'transparent' : 'var(--dash)', name: c.reading ? 'Reading the card' : c.name, detail: c.reading ? 'For is picking out the number and date' : needsBack ? 'Front done. Back still needed.' : c.detail, tone: c.reading ? 'info' : c.tone, word: c.reading ? 'reading' : c.word, remove: () => this.save({ cards: this.state.cards.filter(x => x.id !== c.id) }), viewFront: () => c.src && this.setState({ preview: { src: c.src, title: (c.name || 'Card') + ' · front', aspect: '85/54' } }), viewBack: () => c.back && this.setState({ preview: { src: c.back, title: (c.name || 'Card') + ' · back', aspect: '85/54' } }) }; }),
+      cards: cards.map(c => { const needsBack = !c.back && !c.reading; return { ...c, needsBack, complete: !needsBack, shootBack: () => this.openBackCamera(), bg: bg(c.src), backBg: bg(c.back), backBorder: c.back ? 'transparent' : 'var(--dash)', name: c.reading ? 'Reading the card' : c.name, detail: c.reading ? 'For is picking out the number and date' : needsBack ? 'Front done. Back still needed.' : c.detail, tone: c.reading ? 'info' : c.tone, word: c.reading ? 'reading' : c.word, remove: () => this.save({ cards: this.state.cards.filter(x => x.id !== c.id) }), viewFront: () => c.src && this.setState({ preview: { src: c.src, title: (c.name || 'Card') + ' · front', aspect: '85/54' } }), viewBack: () => c.back && this.setState({ preview: { src: c.back, title: (c.name || 'Card') + ' · back', aspect: '85/54' } }) }; }),
       hasCards: cards.length > 0, addCardLabel: cards.length ? 'Photograph the next card' : 'Photograph a card',
       addCardHint: 'Front first, then we\'ll ask for the back.',
       onCardFile: e => this.readFile(e, src => { const id = 'c' + Date.now(); const n = this.state.cards.length; this.save({ cards: [...this.state.cards, { id, src, reading: true }], addingCard: false }); setTimeout(() => this.save({ cards: this.state.cards.map(c => c.id === id ? { ...c, reading: false, ...READS[n % READS.length] } : c) }), 1400); setTimeout(() => this.openBackCamera(), 50); }),
@@ -810,14 +822,14 @@ class Component extends DCLogic {
       pointsTyped: d.licPoints === '0' ? '' : d.licPoints, onPoints: e => this.setD('licPoints', e.target.value.replace(/\D/g, '').slice(0, 2)),
       pickNoPoints: () => this.setD('licPoints', d.licPoints === '0' ? '' : '0'), noPointsOn: d.licPoints === '0', noPointsBorder: d.licPoints === '0' ? 'var(--ink)' : 'var(--line)', noPointsBg: d.licPoints === '0' ? 'var(--ink)' : 'transparent', noPointsColor: d.licPoints === '0' ? 'var(--bg)' : 'var(--ink)',
       hasLicFront: !!d.licFront, noLicFront: !d.licFront, hasLicBack: !!d.licBack, noLicBack: !d.licBack,
-      licFrontBg: d.licFront && d.licFront !== 'kept' ? 'url(' + d.licFront + ')' : 'none', licBackBg: d.licBack && d.licBack !== 'kept' ? 'url(' + d.licBack + ')' : 'none',
+      licFrontBg: bg(d.licFront), licBackBg: bg(d.licBack),
       onLicFront: e => this.readFile(e, src => { this.setD('licFront', src); if (!this.state.d.licBack) setTimeout(() => this.setState({ camera: { handler: 'onLicBack', facing: 'environment', aspect: '85/54', radius: 12, title: 'Driving licence · back', hint: 'Now turn the licence over and fit the back in the frame.' } }), 50); }), onLicUpload: e => this.readFile(e, src => this.setD(d.licFront ? 'licBack' : 'licFront', src)), onLicBack: e => this.readFile(e, src => this.setD('licBack', src)),
       clearLicFront: () => this.save({ d: { ...d, licFront: '', licPoints: '', licNumber: '', licExpiry: '' } }), clearLicBack: () => this.save({ d: { ...d, licBack: '', licPoints: '', licNumber: '', licExpiry: '' } }),
       viewLicFront: () => d.licFront && this.setState({ preview: { src: d.licFront, title: 'Driving licence · front', aspect: '85/54' } }),
       viewLicBack: () => d.licBack && this.setState({ preview: { src: d.licBack, title: 'Driving licence · back', aspect: '85/54' } }),
       viewSelfie: () => d.selfie && this.setState({ preview: { src: d.selfie, title: 'Your photo', aspect: '3/4' } }),
-      previewOpen: !!this.state.preview, previewAspect: this.state.preview && this.state.preview.aspect || '85/54', previewMax: this.state.preview && this.state.preview.aspect === '3/4' ? '360px' : '640px', previewBg: this.state.preview ? 'url(' + this.state.preview.src + ')' : 'none', stopClick: e => e.stopPropagation(), previewTitle: this.state.preview ? this.state.preview.title : '', closePreview: () => this.setState({ preview: null }),
-      selfieBg: d.selfie ? 'url(' + d.selfie + ')' : 'none', rtwBg: d.rtwPhoto ? 'url(' + d.rtwPhoto + ')' : 'none', hasSelfie: !!d.selfie, noSelfie: !d.selfie, onSelfieFile: e => this.readFile(e, src => this.setD('selfie', src)), clearSelfie: () => this.setD('selfie', ''),
+      previewOpen: !!this.state.preview, previewAspect: this.state.preview && this.state.preview.aspect || '85/54', previewMax: this.state.preview && this.state.preview.aspect === '3/4' ? '360px' : '640px', previewBg: bg(this.state.preview && this.state.preview.src), stopClick: e => e.stopPropagation(), previewTitle: this.state.preview ? this.state.preview.title : '', closePreview: () => this.setState({ preview: null }),
+      selfieBg: bg(d.selfie), rtwBg: bg(d.rtwPhoto), hasSelfie: !!d.selfie, noSelfie: !d.selfie, onSelfieFile: e => this.readFile(e, src => this.setD('selfie', src)), clearSelfie: () => this.setD('selfie', ''),
       review: [
         { title: 'About you', rows: [ { k: 'Name', v: or(fullName) }, { k: 'Born', v: dobText }, { k: 'Gender', v: or(d.gender) }, { k: 'Trade', v: tradeText }, { k: 'Address', v: or(d.address) } ], edit: () => this.goStep(1) },
         { title: 'Your photo', rows: [ { k: 'Site register', v: d.selfie ? 'Photo added' : 'Not taken' } ], edit: () => this.goStep(2) },
