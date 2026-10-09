@@ -9,7 +9,7 @@ Everything in this bundle is a **design reference built in HTML** (Design Compon
 Open `Platform.dc.html` and `Landing Page.dc.html` directly in a browser to explore. The design system bundle lives in `_ds/` (tokens as CSS custom properties in `_ds/.../tokens/*.css`, components in `_ds_bundle.js`, guide in `readme.md`).
 
 ## Fidelity
-**High-fidelity.** Colours, type, spacing, radii and copy are final. Recreate pixel-accurately using the design tokens below. Data is mock (Harlow Groundworks Ltd, Aiden Cole, Tom Bailey, Kingsway depot, Lee Parker…) — replace with real models.
+**High-fidelity.** Colours, type, spacing, radii and copy are final. Recreate pixel-accurately using the design tokens below. Data is mock (Woodleaze, Aiden Cole, Tom Bailey, Kingsway depot, Lee Parker…) — replace with real models.
 
 ## Design system essentials (from `_ds` guide)
 - Type: Helvetica Neue only, weights 300/400/500. H1 28/300 or 28/500 (profiles), section 20/500, body 15–16 /1.6, label 14/500, meta 13, eyebrow 11 uppercase +0.14em. Figures tabular.
@@ -88,7 +88,7 @@ Header panel: Portrait 120 wide (3:4) + name 28/500, trade, where this week, tag
 List rows: name, meta, tag, check line. Dashed "Add equipment" block. Unit: name + tag + check line; cards **Certificates and checks**, **Details**, **Recent checks**.
 
 ### Company (dashboard, 1120)
-"Harlow Groundworks Ltd". Cards: **Mailbox** (address, provider/last checked, tag connected/not connected; "Connect mailbox" primary when missing), **People** (+ "Add a person"), **Details**.
+"Woodleaze". Cards: **Mailbox** (address, provider/last checked, tag connected/not connected; "Connect mailbox" primary when missing), **People** (+ "Add a person"), **Details**.
 
 ## Interactions & behaviour
 - Navigation keeps an in-app history stack; menu picks reset it. Every navigation scrolls to top.

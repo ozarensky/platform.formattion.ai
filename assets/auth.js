@@ -83,6 +83,7 @@
 
   window.fpAuth = {
     configured: configured,
+    client: client,
     sendCode: sendCode,
     verifyCode: verifyCode,
     getSession: getSession,

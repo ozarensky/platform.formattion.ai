@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html><head>
+<html>
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join the team</title>
+<script src="assets/config.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -264,6 +267,16 @@ a:hover{opacity:.45}
   <div style="position:fixed;top:66px;left:26px;right:26px;height:6px;z-index:50;max-width:448px;margin:0 auto;display:{{ progressDisplay }}"><div style="height:6px;border-radius:999px;background:var(--ink);width:{{ progressWidth }};transition:width .3s cubic-bezier(.4,0,.2,1)"></div></div>
 
   <main style="flex:1;width:100%;max-width:480px;margin:0 auto;padding:96px 20px 140px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+
+    <!-- link closed or expired -->
+    <sc-if value="{{ closed }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Link closed" style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ closedTitle }}</h1>
+          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">{{ closedBody }}</p>
+        </div>
+      </section>
+    </sc-if>
 
     <!-- 0 welcome -->
     <sc-if value="{{ s0 }}" hint-placeholder-val="{{ true }}">
@@ -588,16 +601,18 @@ a:hover{opacity:.45}
           </dl>
         </div>
         <p style="font-size:14px;line-height:1.6;color:var(--muted);text-wrap:pretty;padding:0 16px">This link has now closed. You can shut this page.</p>
-        <div style="padding:0 16px"><button type="button" sc-camel-on-click="{{ startAgain }}" style="background:none;border:none;padding:0;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)">Start again (preview only)</button></div>
       </section>
     </sc-if>
   </main>
 
   <sc-if value="{{ showBar }}" hint-placeholder-val="{{ true }}">
     <div style="position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;pointer-events:none;background:linear-gradient(to bottom, rgba(244,239,230,0), var(--bg) 32px)">
-      <div style="width:100%;max-width:480px;padding:32px 20px calc(20px + env(safe-area-inset-bottom, 0px));box-sizing:border-box;display:flex;gap:8px;align-items:center;pointer-events:auto">
+      <div style="width:100%;max-width:480px;padding:32px 20px calc(20px + env(safe-area-inset-bottom, 0px));box-sizing:border-box;display:flex;flex-direction:column;gap:12px;pointer-events:auto">
+      <sc-if value="{{ notice }}" hint-placeholder-val="{{ false }}"><p role="alert" style="margin:0;font-size:14px;line-height:1.5;color:var(--bad-fg);text-wrap:pretty;padding:0 16px">{{ notice }}</p></sc-if>
+      <div style="display:flex;gap:8px;align-items:center">
         <sc-if value="{{ showBack }}" hint-placeholder-val="{{ false }}"><button type="button" sc-camel-on-click="{{ back }}" aria-label="{{ backLabel }}" style="flex-shrink:0;width:52px;height:52px;padding:0;border:none;background:none;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(-5px)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="23" hint-size="23px,23px"></x-import></button></sc-if>
         <div style="flex:1;min-width:0"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Button" variant="primary" on-click="{{ next }}" disabled="{{ nextDisabled }}" dc-props="{{ wideProps }}" hint-size="100%,52px">{{ nextLabel }}</x-import></div>
+      </div>
       </div>
     </div>
   </sc-if>
@@ -662,7 +677,34 @@ a:hover{opacity:.45}
 </x-dc>
 <script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;: {&quot;width&quot;: 402, &quot;height&quot;: 874}, &quot;subcontractor&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Woodleaze&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;contact&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Ion&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;firstName&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Tom&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startDate&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Monday 5 October&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startStep&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 0, &quot;min&quot;: 0, &quot;max&quot;: 9, &quot;step&quot;: 1, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Preview&quot;}, &quot;showCamera&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Preview&quot;}}">
 const cap = v => v.charAt(0).toUpperCase() + v.slice(1);
-const KEY = 'intake:demo';
+// The link carries the invite token: join.html?t=<token>. Without one the page runs as the
+// preview it always was (nothing leaves the phone).
+const TOKEN = new URLSearchParams(location.search).get('t') || '';
+const KEY = 'intake:' + (TOKEN ? TOKEN.slice(0, 12) : 'demo');
+const api = {
+  call: async (fn, body) => {
+    const cfg = window.FP_CONFIG || {};
+    let r;
+    try { r = await fetch(cfg.supabaseUrl + '/functions/v1/' + fn, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: cfg.supabaseKey }, body: JSON.stringify({ token: TOKEN, ...body }) }); }
+    catch (e) { throw new Error('No signal. Try again when you\'re back online.'); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || ('Something went wrong (' + r.status + ')'));
+    return j;
+  },
+  // Uploads one photo straight to Storage and returns its path.
+  upload: async (kind, dataUrl) => {
+    const u = await api.call('upload-url', { kind });
+    if (u.closed) throw new Error('closed');
+    const blob = await (await fetch(dataUrl)).blob();
+    const r = await fetch(u.signedUrl, { method: 'PUT', headers: { 'Content-Type': blob.type || 'image/jpeg', 'x-upsert': 'true' }, body: blob });
+    if (!r.ok) throw new Error('The photo didn\'t upload. Check your signal and try again.');
+    return u.path;
+  }
+};
+// Which storage slot each photo field lives in.
+const SLOT = { licFront: 'licence/front', licBack: 'licence/back', rtwPhoto: 'right-to-work/document', selfie: 'photo' };
+const isImg = v => typeof v === 'string' && (v.startsWith('data:') || v.startsWith('http'));
+const dateText = iso => iso ? new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
 // Client logos for the header, by company name. Text when a client has none yet.
 const LOGOS = { Woodleaze: 'assets/clients/woodleaze/lockup-short.svg' };
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
@@ -681,7 +723,7 @@ const EMPTY = { licFront: '', licBack: '', licPoints: '', licNumber: '', licExpi
 const PC_RE = /^[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}$/;
 const fmtPc = v => { const c = v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7); return c.length > 4 ? c.slice(0, -3) + ' ' + c.slice(-3) : c; };
 class Component extends DCLogic {
-  state = { step: 0, d: { ...EMPTY }, cards: [], resumed: false, cal: {}, preview: null, camera: null, shot: null };
+  state = { step: 0, d: { ...EMPTY }, cards: [], resumed: false, cal: {}, preview: null, camera: null, shot: null, files: {}, inv: null, ready: !TOKEN, closed: null, sending: false, notice: '' };
   sigRef = React.createRef(); videoRef = React.createRef(); guideRef = React.createRef();
   componentDidUpdate() { const c = this.state.camera; if (c && !this.state.shot && !c.error && this._streamFacing !== c.facing) this.startCamera(); if (!c && this._stream) this.stopCamera(); }
   componentWillUnmount() { this.stopCamera(); }
@@ -712,9 +754,69 @@ class Component extends DCLogic {
       if (raw) { const s = JSON.parse(raw); if (s.d) { s.d.signed = false; s.d = { ...EMPTY, ...s.d }; if (!s.d.trade && Array.isArray(s.d.trades)) s.d.trade = (s.d.trades.find(x => x && x.trim()) || ''); delete s.d.trades; delete s.d.county; delete s.d.addrMode; } if (s.d && s.d.fullName && !s.d.firstName) { const p = s.d.fullName.trim().split(/\s+/); s.d.firstName = p.shift() || ''; s.d.surname = p.join(' '); } if (s.d && !Array.isArray(s.d.trades)) s.d.trades = (s.d.trade || '').split(',').map(x => x.trim()).filter(Boolean); if (s.d && !s.d.trades.length) s.d.trades = ['']; if (s.d && s.d.licExpiry && !/^\d{4}-\d{2}-\d{2}$/.test(s.d.licExpiry)) s.d.licExpiry = ''; if (s.d && s.d.rtw === 'none') s.d.rtw = ''; if (s.d) ['selfie', 'rtwPhoto', 'licFront', 'licBack'].forEach(k => { if (s.d[k] === 'kept') s.d[k] = ''; }); this.setState({ step: s.step || 0, d: { ...EMPTY, ...s.d }, cards: (s.cards || []).filter(c => c.src && c.src !== 'kept' && c.src !== '').map(c => ({ ...c, reading: false, back: c.back === 'kept' ? '' : (c.back || '') })), resumed: (s.step || 0) > 0 && s.step < 9 }); return; }
     } catch (e) {}
     const st = this.props.startStep; if (st != null && st > 0) this.setState({ step: Number(st) });
+    if (TOKEN) this.loadInvite();
     if (this.props.showCamera) this.setState({ camera: { handler: 'onCardFile', facing: 'environment', aspect: '85/54', radius: 12, title: 'Front of the card' } });
   }
-  save(extra) { this.setState(extra, () => { try { const { step, d, cards } = this.state; localStorage.setItem(KEY, JSON.stringify({ step, d, cards })); } catch (e) {} }); }
+  // Photos are kept as 'kept' in the saved copy: the file is in Storage and comes back as a signed URL.
+  stripped() {
+    const { step, d, cards, files } = this.state;
+    const sd = { ...d }; Object.keys(SLOT).forEach(k => { if (isImg(sd[k])) sd[k] = files[SLOT[k]] ? 'kept' : ''; });
+    const sc = cards.filter(c => !c.reading).map(c => ({ ...c, src: isImg(c.src) ? 'kept' : c.src, back: isImg(c.back) ? 'kept' : c.back }));
+    return { step, d: sd, cards: sc, files };
+  }
+  save(extra) {
+    this.setState(extra, () => {
+      try { localStorage.setItem(KEY, JSON.stringify(this.stripped())); } catch (e) {}
+      if (!TOKEN || this.state.step >= 9) return;
+      clearTimeout(this._draftT);
+      this._draftT = setTimeout(() => { api.call('save-draft', { draft: this.stripped() }).catch(() => {}); }, 800);
+    });
+  }
+  async loadInvite() {
+    let r;
+    try { r = await api.call('get-invite', {}); }
+    catch (e) { this.setState({ ready: true, closed: e.message.startsWith('No signal') ? 'offline' : 'error', notice: e.message }); return; }
+    if (r.closed) { this.setState({ ready: true, closed: r.closed }); return; }
+    const inv = { subcontractor: r.company, contact: r.contact, first: r.firstName, start: r.startsOn ? dateText(r.startsOn) : 'your first day', expiresAt: r.expiresAt };
+    const patch = { inv, ready: true };
+    // Server draft wins when this phone has nothing; otherwise keep the local copy but
+    // refresh the photo links from the server.
+    const dr = r.draft, urls = r.urls || {};
+    const haveLocal = !!localStorage.getItem(KEY);
+    const files = { ...(dr && dr.files || {}), ...this.state.files };
+    patch.files = files;
+    const d = { ...EMPTY, ...(haveLocal ? this.state.d : (dr && dr.d) || {}) }; d.signed = false;
+    Object.keys(SLOT).forEach(k => { const p = files[SLOT[k]]; if (!isImg(d[k])) d[k] = p && urls[p] ? urls[p] : ''; });
+    patch.d = d;
+    let cards = haveLocal ? this.state.cards : (dr && dr.cards) || [];
+    cards = cards.filter(c => !c.reading).map(c => { const f = files['cards/' + c.id + '/front'], b = files['cards/' + c.id + '/back']; return { ...c, src: isImg(c.src) ? c.src : (f && urls[f]) || '', back: isImg(c.back) ? c.back : (b && urls[b]) || '' }; });
+    patch.cards = cards;
+    if (!haveLocal && dr && dr.step > 0) { patch.step = Math.min(dr.step, 8); patch.resumed = true; }
+    this.setState(patch);
+  }
+  // Shows the photo at once, uploads it behind, and takes it back if the upload fails.
+  putPhoto(kind, src, apply, undo) {
+    apply(src);
+    if (!TOKEN) return Promise.resolve();
+    return api.upload(kind, src).then(path => { this.save({ files: { ...this.state.files, [kind]: path }, notice: '' }); }, e => { undo(); this.setState({ notice: e.message === 'closed' ? 'This link has closed.' : e.message }); });
+  }
+  dropFile(kind) { const files = { ...this.state.files }; delete files[kind]; this.save({ files }); }
+  async submit() {
+    const { d, cards, files } = this.state;
+    this.setState({ sending: true, notice: '' });
+    try {
+      const c = this.sigRef.current; if (!c) throw new Error('Sign above to send.');
+      const png = document.createElement('canvas'); png.width = c.width; png.height = c.height; const x = png.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, png.width, png.height); x.drawImage(c, 0, 0);
+      const sig = await api.upload('signature', png.toDataURL('image/png'));
+      const allFiles = { ...files, signature: sig };
+      const sd = this.stripped().d;
+      const r = await api.call('submit-intake', { d: sd, files: allFiles, cards: cards.map(k => ({ id: k.id, name: k.name, front: files['cards/' + k.id + '/front'] || null, back: files['cards/' + k.id + '/back'] || null })) });
+      if (r.closed) throw new Error('This link has already closed.');
+      try { localStorage.removeItem(KEY); } catch (e) {}
+      this._sentAt = new Date(r.sentAt || Date.now());
+      this.setState({ sending: false, step: 9 }); window.scrollTo(0, 0);
+    } catch (e) { this.setState({ sending: false, notice: e.message }); }
+  }
   setD(k, v) { this.save({ d: { ...this.state.d, [k]: v } }); }
   goStep(step) { this._ink = 0; this.save({ step, d: { ...this.state.d, signed: false } }); window.scrollTo(0, 0); }
   readFile(e, cb) { if (typeof e === 'string') { cb(e); return; } const f = e.target.files && e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => cb(r.result); r.readAsDataURL(f); e.target.value = ''; }
@@ -722,7 +824,8 @@ class Component extends DCLogic {
   pt(e) { const r = this.sigRef.current.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
   renderVals() {
     const { step, d, cards } = this.state;
-    const sub = this.props.subcontractor || 'Woodleaze', contact = this.props.contact || 'Ion', first = this.props.firstName || 'Tom', start = this.props.startDate || 'Monday 5 October';
+    const inv = this.state.inv || {};
+    const sub = inv.subcontractor || this.props.subcontractor || 'Woodleaze', contact = inv.contact || this.props.contact || 'Ion', first = inv.first || this.props.firstName || 'Tom', start = inv.start || this.props.startDate || 'Monday 5 October';
     const set = {}; Object.keys(EMPTY).forEach(k => { set[k] = e => { const v = e && e.target ? e.target.value : e; this.setD(k, typeof v === 'string' ? cap(v) : v); }; });
     set.sortCode = e => { const v = e && e.target ? e.target.value : e || ''; const dg = v.replace(/\D/g, '').slice(0, 6); const del = v.length < (d.sortCode || '').length; let out = (dg.match(/.{1,2}/g) || []).join('-'); if (!del && dg.length % 2 === 0 && dg.length > 0 && dg.length < 6) out += '-'; this.setD('sortCode', out); };
     set.ni = e => { const v = e && e.target ? e.target.value : e || ''; const del = v.length < (d.ni || '').length; let c = ''; for (const ch of v.toUpperCase().replace(/[^A-Z0-9]/g, '')) { const i = c.length; if (i < 2 ? /[A-Z]/.test(ch) : i < 8 ? /\d/.test(ch) : i === 8 && /[A-D]/.test(ch)) c += ch; if (c.length === 9) break; } const parts = [c.slice(0, 2), c.slice(2, 4), c.slice(4, 6), c.slice(6, 8), c.slice(8)].filter(Boolean); let out = parts.join(' '); if (!del && [2, 4, 6, 8].includes(c.length)) out += ' '; this.setD('ni', out); };
@@ -731,7 +834,7 @@ class Component extends DCLogic {
     const addrOk = PC_RE.test((d.postcode || '').replace(/\s/g, '')) && (d.addrLine || '').trim().length > 2 && (d.addrTown || '').trim().length > 1;
     const addrFull = [d.addrLine, d.addrLine2, d.addrTown, d.postcode].map(x => (x || '').trim()).filter(Boolean).join(', ');
     if (addrFull !== d.address) setTimeout(() => this.setD('address', addrFull));
-    const s = {}; for (let i = 0; i <= 9; i++) s['s' + i] = step === i;
+    const s = {}; for (let i = 0; i <= 9; i++) s['s' + i] = this.state.ready && !this.state.closed && step === i;
     const rtw = RTW.find(r => r.id === d.rtw);
     const tradeList = [(d.trade || '').trim()].filter(Boolean); const tradeText = tradeList.join(', ') || 'Not given'; const fullName = [d.firstName, d.surname].map(x => x.trim()).filter(Boolean).join(' ');
     const dobText = d.dob ? new Date(d.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not given';
@@ -770,7 +873,10 @@ class Component extends DCLogic {
       welcomeTitle: 'Hi ' + first + ', welcome to ' + sub + '.',
       stepLabel: step === 0 ? 'About 2 minutes' : step === 9 ? 'Done' : step + ' of ' + total,
       progressDisplay: step > 0 && step < 9 ? 'block' : 'none', progressWidth: Math.round((step / total) * 100) + '%',
-      expiry: new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }),
+      expiry: dateText(inv.expiresAt || new Date(Date.now() + 7 * 86400000).toISOString()),
+      closed: !!this.state.closed, notice: this.state.notice,
+      closedTitle: this.state.closed === 'used' ? 'This link has already been used.' : this.state.closed === 'expired' ? 'This link has run out.' : this.state.closed === 'offline' ? 'No signal.' : this.state.closed === 'error' ? 'Something went wrong.' : 'This link doesn\'t work.',
+      closedBody: this.state.closed === 'used' ? 'What you sent is with ' + contact + '. If something needs changing, ask them.' : this.state.closed === 'offline' ? 'Try again when you\'re back online.' : this.state.closed === 'error' ? this.state.notice + ' Try again in a minute.' : 'Ask ' + (inv.contact || 'the person who invited you') + ' to send a new one.',
       resumed: this.state.resumed && step === 0,
       outline: [ { name: 'About you', need: 'Name, trade, address' }, { name: 'Your photo', need: 'For the site register' }, { name: 'Driving licence', need: 'If you have one' }, { name: 'Your cards', need: 'Both sides' }, { name: 'Right to work', need: 'Passport or share code' }, { name: 'Getting paid', need: 'NI and bank' }, { name: 'Emergency contact', need: 'One person' } ],
       d, set,
@@ -794,30 +900,33 @@ class Component extends DCLogic {
       showAddRow: !pendingBack && cards.length > 0 && !this.state.addingCard,
       showAddOptions: !pendingBack && (cards.length === 0 || !!this.state.addingCard),
       startAddCard: () => this.setState({ addingCard: true }),
-      cards: cards.map(c => { const needsBack = !c.back && !c.reading; return { ...c, needsBack, complete: !needsBack, shootBack: () => this.openBackCamera(), bg: c.src ? 'url(' + c.src + ')' : 'none', backBg: c.back && c.back !== 'kept' ? 'url(' + c.back + ')' : 'none', backBorder: c.back ? 'transparent' : 'var(--dash)', name: c.reading ? 'Reading the card' : c.name, detail: c.reading ? 'For is picking out the number and date' : needsBack ? 'Front done. Back still needed.' : c.detail, tone: c.reading ? 'info' : c.tone, word: c.reading ? 'reading' : c.word, remove: () => this.save({ cards: this.state.cards.filter(x => x.id !== c.id) }), viewFront: () => c.src && this.setState({ preview: { src: c.src, title: (c.name || 'Card') + ' · front', aspect: '85/54' } }), viewBack: () => c.back && this.setState({ preview: { src: c.back, title: (c.name || 'Card') + ' · back', aspect: '85/54' } }) }; }),
+      cards: cards.map(c => { const needsBack = !c.back && !c.reading; return { ...c, needsBack, complete: !needsBack, shootBack: () => this.openBackCamera(), bg: c.src ? 'url(' + c.src + ')' : 'none', backBg: c.back && c.back !== 'kept' ? 'url(' + c.back + ')' : 'none', backBorder: c.back ? 'transparent' : 'var(--dash)', name: c.reading ? 'Saving the card' : c.name, detail: c.reading ? 'Uploading the photo' : needsBack ? 'Front done. Back still needed.' : c.detail, tone: c.reading ? 'info' : c.tone, word: c.reading ? 'saving' : c.word, remove: () => { this.dropFile('cards/' + c.id + '/front'); this.dropFile('cards/' + c.id + '/back'); this.save({ cards: this.state.cards.filter(x => x.id !== c.id) }); }, viewFront: () => c.src && this.setState({ preview: { src: c.src, title: (c.name || 'Card') + ' · front', aspect: '85/54' } }), viewBack: () => c.back && this.setState({ preview: { src: c.back, title: (c.name || 'Card') + ' · back', aspect: '85/54' } }) }; }),
       hasCards: cards.length > 0, addCardLabel: cards.length ? 'Photograph the next card' : 'Photograph a card',
       addCardHint: 'Front first, then we\'ll ask for the back.',
-      onCardFile: e => this.readFile(e, src => { const id = 'c' + Date.now(); const n = this.state.cards.length; this.save({ cards: [...this.state.cards, { id, src, reading: true }], addingCard: false }); setTimeout(() => this.save({ cards: this.state.cards.map(c => c.id === id ? { ...c, reading: false, ...READS[n % READS.length] } : c) }), 1400); setTimeout(() => this.openBackCamera(), 50); }),
-      onCardBack: e => this.readFile(e, src => { const p = this.state.cards.find(c => !c.back); if (p) this.save({ cards: this.state.cards.map(c => c.id === p.id ? { ...c, back: src } : c) }); }),
+      onCardFile: e => this.readFile(e, src => { const id = 'c' + Date.now(); const n = this.state.cards.length; this.save({ cards: [...this.state.cards, { id, src, reading: true }], addingCard: false });
+        const done = () => this.save({ cards: this.state.cards.map(c => c.id === id ? { ...c, reading: false, ...(TOKEN ? { name: 'Card ' + (n + 1), detail: contact + ' will check the number and date', tone: 'info', word: 'to check' } : READS[n % READS.length]) } : c) });
+        if (TOKEN) api.upload('cards/' + id + '/front', src).then(path => { this.save({ files: { ...this.state.files, ['cards/' + id + '/front']: path }, notice: '' }); done(); setTimeout(() => this.openBackCamera(), 50); }, err => { this.save({ cards: this.state.cards.filter(c => c.id !== id), notice: err.message === 'closed' ? 'This link has closed.' : err.message }); });
+        else { setTimeout(done, 1400); setTimeout(() => this.openBackCamera(), 50); } }),
+      onCardBack: e => this.readFile(e, src => { const p = this.state.cards.find(c => !c.back); if (!p) return; const setBack = v => this.save({ cards: this.state.cards.map(c => c.id === p.id ? { ...c, back: v } : c) }); this.putPhoto('cards/' + p.id + '/back', src, setBack, () => setBack('')); }),
             
       genders: GENDERS.map(g => { const on = d.gender === g; return { name: g, on, pick: () => this.setD('gender', g), border: on ? 'var(--ink)' : 'var(--line)', bg: on ? 'var(--ink)' : 'transparent', color: on ? 'var(--bg)' : 'var(--ink)' }; }),
       rtwOptions: RTW.map(r => { const on = d.rtw === r.id; return { ...r, on, pick: () => this.save({ d: { ...d, rtw: r.id, rtwPhoto: '', shareCode: '' } }), bg: on ? 'var(--bg3)' : 'transparent', dotDisplay: on ? 'block' : 'none' }; }),
       rtwNeedsPhoto: !!(rtw && rtw.photo), rtwNeedsCode: d.rtw === 'code', hasRtwPhoto: !!d.rtwPhoto, noRtwPhoto: !d.rtwPhoto,
       rtwPhotoName: rtw && rtw.photo ? rtw.photo : '', rtwPhotoHint: rtw && rtw.hint ? rtw.hint : '',
-      onRtwFile: e => this.readFile(e, src => this.setD('rtwPhoto', src)), clearRtwPhoto: () => this.setD('rtwPhoto', ''),
+      onRtwFile: e => this.readFile(e, src => this.putPhoto(SLOT.rtwPhoto, src, v => this.setD('rtwPhoto', v), () => this.setD('rtwPhoto', ''))), clearRtwPhoto: () => { this.dropFile(SLOT.rtwPhoto); this.setD('rtwPhoto', ''); },
       viewRtw: () => d.rtwPhoto && this.setState({ preview: { src: d.rtwPhoto, title: rtw && rtw.photo ? rtw.photo.charAt(0).toUpperCase() + rtw.photo.slice(1) : 'Document' } }),
       hasLicence: !!d.licFront && !!d.licBack,
       pointsTyped: d.licPoints === '0' ? '' : d.licPoints, onPoints: e => this.setD('licPoints', e.target.value.replace(/\D/g, '').slice(0, 2)),
       pickNoPoints: () => this.setD('licPoints', d.licPoints === '0' ? '' : '0'), noPointsOn: d.licPoints === '0', noPointsBorder: d.licPoints === '0' ? 'var(--ink)' : 'var(--line)', noPointsBg: d.licPoints === '0' ? 'var(--ink)' : 'transparent', noPointsColor: d.licPoints === '0' ? 'var(--bg)' : 'var(--ink)',
       hasLicFront: !!d.licFront, noLicFront: !d.licFront, hasLicBack: !!d.licBack, noLicBack: !d.licBack,
       licFrontBg: d.licFront && d.licFront !== 'kept' ? 'url(' + d.licFront + ')' : 'none', licBackBg: d.licBack && d.licBack !== 'kept' ? 'url(' + d.licBack + ')' : 'none',
-      onLicFront: e => this.readFile(e, src => { this.setD('licFront', src); if (!this.state.d.licBack) setTimeout(() => this.setState({ camera: { handler: 'onLicBack', facing: 'environment', aspect: '85/54', radius: 12, title: 'Driving licence · back', hint: 'Now turn the licence over and fit the back in the frame.' } }), 50); }), onLicUpload: e => this.readFile(e, src => this.setD(d.licFront ? 'licBack' : 'licFront', src)), onLicBack: e => this.readFile(e, src => this.setD('licBack', src)),
-      clearLicFront: () => this.save({ d: { ...d, licFront: '', licPoints: '', licNumber: '', licExpiry: '' } }), clearLicBack: () => this.save({ d: { ...d, licBack: '', licPoints: '', licNumber: '', licExpiry: '' } }),
+      onLicFront: e => this.readFile(e, src => { this.putPhoto(SLOT.licFront, src, v => this.setD('licFront', v), () => this.setD('licFront', '')); if (!this.state.d.licBack) setTimeout(() => this.setState({ camera: { handler: 'onLicBack', facing: 'environment', aspect: '85/54', radius: 12, title: 'Driving licence · back', hint: 'Now turn the licence over and fit the back in the frame.' } }), 50); }), onLicUpload: e => this.readFile(e, src => { const k = d.licFront ? 'licBack' : 'licFront'; this.putPhoto(SLOT[k], src, v => this.setD(k, v), () => this.setD(k, '')); }), onLicBack: e => this.readFile(e, src => this.putPhoto(SLOT.licBack, src, v => this.setD('licBack', v), () => this.setD('licBack', ''))),
+      clearLicFront: () => { this.dropFile(SLOT.licFront); this.save({ d: { ...d, licFront: '', licPoints: '', licNumber: '', licExpiry: '' } }); }, clearLicBack: () => { this.dropFile(SLOT.licBack); this.save({ d: { ...d, licBack: '', licPoints: '', licNumber: '', licExpiry: '' } }); },
       viewLicFront: () => d.licFront && this.setState({ preview: { src: d.licFront, title: 'Driving licence · front', aspect: '85/54' } }),
       viewLicBack: () => d.licBack && this.setState({ preview: { src: d.licBack, title: 'Driving licence · back', aspect: '85/54' } }),
       viewSelfie: () => d.selfie && this.setState({ preview: { src: d.selfie, title: 'Your photo', aspect: '3/4' } }),
       previewOpen: !!this.state.preview, previewAspect: this.state.preview && this.state.preview.aspect || '85/54', previewMax: this.state.preview && this.state.preview.aspect === '3/4' ? '360px' : '640px', previewBg: this.state.preview ? 'url(' + this.state.preview.src + ')' : 'none', stopClick: e => e.stopPropagation(), previewTitle: this.state.preview ? this.state.preview.title : '', closePreview: () => this.setState({ preview: null }),
-      selfieBg: d.selfie ? 'url(' + d.selfie + ')' : 'none', rtwBg: d.rtwPhoto ? 'url(' + d.rtwPhoto + ')' : 'none', hasSelfie: !!d.selfie, noSelfie: !d.selfie, onSelfieFile: e => this.readFile(e, src => this.setD('selfie', src)), clearSelfie: () => this.setD('selfie', ''),
+      selfieBg: d.selfie ? 'url(' + d.selfie + ')' : 'none', rtwBg: d.rtwPhoto ? 'url(' + d.rtwPhoto + ')' : 'none', hasSelfie: !!d.selfie, noSelfie: !d.selfie, onSelfieFile: e => this.readFile(e, src => this.putPhoto(SLOT.selfie, src, v => this.setD('selfie', v), () => this.setD('selfie', ''))), clearSelfie: () => { this.dropFile(SLOT.selfie); this.setD('selfie', ''); },
       review: [
         { title: 'About you', rows: [ { k: 'Name', v: or(fullName) }, { k: 'Born', v: dobText }, { k: 'Gender', v: or(d.gender) }, { k: 'Trade', v: tradeText }, { k: 'Address', v: or(d.address) } ], edit: () => this.goStep(1) },
         { title: 'Your photo', rows: [ { k: 'Site register', v: d.selfie ? 'Photo added' : 'Not taken' } ], edit: () => this.goStep(2) },
@@ -834,12 +943,12 @@ class Component extends DCLogic {
       clearSig: () => { const c = this.sigRef.current; if (c) { const x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height); } this._ink = 0; this.setD('signed', false); },
       clearSigDisplay: d.signed ? 'block' : 'none',
       doneBody: contact + ' checks your cards and approves you before ' + start + '. You\'ll get a text when that\'s done, and another with where to be and what time.',
-      doneRows: [ { k: 'Sent', v: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }, { k: 'Cards', v: cards.length ? cards.length + ' to check' : 'None sent' }, { k: 'Starts', v: start } ],
+      doneRows: [ { k: 'Sent', v: (this._sentAt || new Date()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + (this._sentAt || new Date()).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }, { k: 'Cards', v: cards.length ? cards.length + ' to check' : 'None sent' }, { k: 'Starts', v: start } ],
       startAgain: () => { try { localStorage.removeItem(KEY); } catch (e) {} this.setState({ step: 0, d: { ...EMPTY }, cards: [], resumed: false }); },
-      showBar: step < 9, showBack: step > 0,
-      nextLabel: step === 0 ? 'Start' : step === 8 ? (d.signed ? 'Send to ' + contact : 'Sign above to send') : step === 3 && !d.licFront && !d.licBack ? 'Next, no licence' : step === 4 && !cards.length ? 'Next, no cards yet' : 'Next',
-      nextDisabled: !canNext,
-      next: () => { if (!canNext) return; this.goStep(step + 1); },
+      showBar: this.state.ready && !this.state.closed && step < 9, showBack: step > 0 && !this.state.sending,
+      nextLabel: this.state.sending ? 'Sending…' : step === 0 ? 'Start' : step === 8 ? (d.signed ? 'Send to ' + contact : 'Sign above to send') : step === 3 && !d.licFront && !d.licBack ? 'Next, no licence' : step === 4 && !cards.length ? 'Next, no cards yet' : 'Next',
+      nextDisabled: !canNext || this.state.sending,
+      next: () => { if (!canNext || this.state.sending) return; if (step === 8 && TOKEN) { this.submit(); return; } this.goStep(step + 1); },
       back: () => this.goStep(step - 1), backLabel: step === 1 ? 'Back' : 'Back to ' + (labels[step - 1] || '').toLowerCase(),
       wideProps: { style: { width: '100%', height: 52, fontSize: 16 } }
     };

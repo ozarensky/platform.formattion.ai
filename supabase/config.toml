@@ -1,0 +1,19 @@
+project_id = "uhomumiwlbrvsdefodjs"
+
+# The intake form has no log-in, so the gateway must not demand a user JWT;
+# each function checks the invite token itself. create-invite checks the
+# manager's access token in code.
+[functions.create-invite]
+verify_jwt = false
+
+[functions.get-invite]
+verify_jwt = false
+
+[functions.save-draft]
+verify_jwt = false
+
+[functions.upload-url]
+verify_jwt = false
+
+[functions.submit-intake]
+verify_jwt = false
