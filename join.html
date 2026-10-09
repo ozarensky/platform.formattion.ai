@@ -257,10 +257,35 @@ a:hover{opacity:.45}
     input[type="date"] { color-scheme: light; }
   </style>
   <style>
+    /* Shared pieces. Radius is concentric: card 20 with 8 inset, so inner surfaces are 12. */
+    .stack-24, .stack-16, .stack-10, .stack-8 { display: flex; flex-direction: column; }
+    .stack-24 { gap: 24px; } .stack-16 { gap: 16px; } .stack-10 { gap: 10px; } .stack-8 { gap: 8px; }
+    .card { background: var(--bg2); border-radius: 20px; padding: 8px; display: flex; flex-direction: column; gap: 8px; }
+    .title { font-size: 28px; font-weight: 500; line-height: 1.2; letter-spacing: -.01em; color: var(--ink); }
+    .lead { font-size: 15px; line-height: 1.6; text-wrap: pretty; }
+    .meta { font-size: 13px; color: var(--muted); }
+    .hide { display: none; }
+    /* Arrows: ink, bare, move 5px the way they point. */
+    .arrow { background: none; border: none; padding: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--ink); cursor: pointer; transition: transform .25s cubic-bezier(.25,.46,.45,.94); }
+    .arrow-back:hover { transform: translateX(-5px); } .arrow-fwd:hover { transform: translateX(5px); }
+    /* Icon buttons: muted to ink. */
+    .icon-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; }
+    .text-btn { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px; font-size: 14px; color: var(--muted); cursor: pointer; }
+    .icon-btn:hover, .text-btn:hover { color: var(--ink); }
+    .icon-btn-ink { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--ink); cursor: pointer; font: inherit; font-size: 14px; background: none; border: none; padding: 0; }
+    .icon-btn-ink:hover { opacity: .45; }
+    .pill { min-height: 44px; border-radius: 999px; color: var(--ink); font-size: 15px; cursor: pointer; }
+    .pill-line { padding: 0 20px; border: 1px solid var(--line); background: transparent; transition: border-color .2s; }
+    .pill-line:hover { border-color: var(--ink); }
+    .pill-ink { padding: 0 24px; border: none; background: var(--ink); color: var(--bg); font-weight: 500; transition: background .2s; }
+    .pill-ink:hover { background: var(--brand); }
+    .drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 1px dashed var(--dash); border-radius: 12px; cursor: pointer; color: var(--ink); text-align: center; padding: 16px; font: inherit; background: none; }
+    .drop:hover { border-color: var(--ink); }
     /* Icons: one file each, drawn in the current text colour. */
     .i { display: block; flex-shrink: 0; background: currentColor; -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
     .i-camera { -webkit-mask-image: url(assets/icons/camera-solid.svg); mask-image: url(assets/icons/camera-solid.svg); }
     .i-upload { -webkit-mask-image: url(assets/icons/upload.svg); mask-image: url(assets/icons/upload.svg); }
+    .i-20 { width: 20px; height: 20px; } .i-24 { width: 24px; height: 24px; } .i-32 { width: 32px; height: 32px; } .i-40 { width: 40px; height: 40px; }
   </style>
   <script src="assets/scroll-pill.js"></script>
 </helmet>
@@ -276,20 +301,20 @@ a:hover{opacity:.45}
 
     <!-- link closed or expired -->
     <sc-if value="{{ closed }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Link closed" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
+      <section data-screen-label="Link closed" class="stack-24">
+        <div class="stack-10">
           <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ closedTitle }}</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">{{ closedBody }}</p>
+          <p class="lead">{{ closedBody }}</p>
         </div>
       </section>
     </sc-if>
 
     <!-- 0 welcome -->
     <sc-if value="{{ s0 }}" hint-placeholder-val="{{ true }}">
-      <section data-screen-label="Welcome" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
+      <section data-screen-label="Welcome" class="stack-24">
+        <div class="stack-10">
           <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">{{ welcomeTitle }}</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">{{ contact }} has invited you to the team. Before your first day we need your cards and a few details. It takes about two minutes.</p>
+          <p class="lead">{{ contact }} has invited you to the team. Before your first day we need your cards and a few details. It takes about two minutes.</p>
         </div>
         <div style="background:var(--bg2);border-radius:20px;padding:8px">
           <ol style="list-style:none;margin:0;padding:0;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
@@ -305,33 +330,33 @@ a:hover{opacity:.45}
 
     <!-- 1 about you -->
     <sc-if value="{{ s1 }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="About you" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">About you</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">Your name as it appears on your ID.<br></p>
+      <section data-screen-label="About you" class="stack-24">
+        <div class="stack-10">
+          <h1 class="title">About you</h1>
+          <p class="lead">Your name as it appears on your ID.<br></p>
         </div>
-        <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="stack-16">
           <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
             <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" auto-capitalize="sentences" label="First name" placeholder="Thomas" value="{{ d.firstName }}" on-change="{{ set.firstName }}" hint-size="100%,72px"></x-import>
             <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" auto-capitalize="sentences" label="Surname" placeholder="Bailey" value="{{ d.surname }}" on-change="{{ set.surname }}" hint-size="100%,72px"></x-import>
           </div>
-          <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="stack-8">
             <div style="display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:4px;align-items:end">
               <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Date of birth" type="tel" placeholder="dd/mm/yyyy" value="{{ dobCal.typed }}" on-change="{{ dobCal.onTyped }}" hint-size="100%,72px"></x-import>
               <button type="button" sc-camel-on-click="{{ dobCal.toggle }}" aria-label="{{ dobCal.label }}" aria-expanded="{{ dobCal.open }}" style="background:none;border:none;padding:0;width:44px;height:44px;margin-bottom:2px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;transition:color .2s" style-hover="color:var(--ink)"><sc-if value="{{ dobCal.closed }}" hint-placeholder-val="{{ true }}"><svg width="22" height="22" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg></sc-if><sc-if value="{{ dobCal.open }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="x" size="18" hint-size="18px,18px"></x-import></sc-if></button>
             </div>
             <sc-if value="{{ dobCal.open }}" hint-placeholder-val="{{ false }}">
-              <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+              <div class="card">
                 <div style="background:var(--work);border-radius:12px;padding:4px 4px 8px;display:flex;flex-direction:column;gap:4px">
                   <div style="display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center">
-                    <button type="button" sc-camel-on-click="{{ dobCal.prevYear }}" aria-label="Previous year" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(-5px)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></button>
+                    <button type="button" sc-camel-on-click="{{ dobCal.prevYear }}" aria-label="Previous year" class="arrow arrow-back"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></button>
                     <span style="text-align:center;font-size:15px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums">{{ dobCal.year }}</span>
-                    <button type="button" sc-camel-on-click="{{ dobCal.nextYear }}" aria-label="Next year" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(5px)"><span style="display:flex;transform:rotate(180deg)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></span></button>
+                    <button type="button" sc-camel-on-click="{{ dobCal.nextYear }}" aria-label="Next year" class="arrow arrow-fwd"><span style="display:flex;transform:rotate(180deg)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></span></button>
                   </div>
                   <div style="display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center">
-                    <button type="button" sc-camel-on-click="{{ dobCal.prevMonth }}" aria-label="Previous month" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(-5px)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></button>
+                    <button type="button" sc-camel-on-click="{{ dobCal.prevMonth }}" aria-label="Previous month" class="arrow arrow-back"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></button>
                     <span style="text-align:center;font-size:15px;color:var(--ink)">{{ dobCal.month }}</span>
-                    <button type="button" sc-camel-on-click="{{ dobCal.nextMonth }}" aria-label="Next month" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(5px)"><span style="display:flex;transform:rotate(180deg)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></span></button>
+                    <button type="button" sc-camel-on-click="{{ dobCal.nextMonth }}" aria-label="Next month" class="arrow arrow-fwd"><span style="display:flex;transform:rotate(180deg)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></span></button>
                   </div>
                   <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));padding:0 4px">
                     <sc-for list="{{ dobCal.days }}" as="wd" hint-placeholder-count="7"><span style="text-align:center;font-size:13px;color:var(--muted);padding:6px 0">{{ wd }}</span></sc-for>
@@ -340,11 +365,11 @@ a:hover{opacity:.45}
                     <sc-for list="{{ dobCal.cells }}" as="c" hint-placeholder-count="35"><button type="button" sc-camel-on-click="{{ c.pick }}" style="height:40px;border-radius:999px;border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.color }};opacity:{{ c.opacity }};font-size:15px;font-variant-numeric:tabular-nums;cursor:pointer;padding:0" style-hover="background:var(--bg3)">{{ c.n }}</button></sc-for>
                   </div>
                 </div>
-                <div style="display:flex;justify-content:space-between;gap:8px;padding:0 8px 8px"><button type="button" sc-camel-on-click="{{ dobCal.clear }}" style="min-height:44px;padding:0 20px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:15px;cursor:pointer;transition:border-color .2s" style-hover="border-color:var(--ink)">Clear</button><button type="button" sc-camel-on-click="{{ dobCal.done }}" style="min-height:44px;padding:0 24px;border-radius:999px;border:none;background:var(--ink);color:var(--bg);font-size:15px;font-weight:500;cursor:pointer;transition:background .2s" style-hover="background:var(--brand)">Done</button></div>
+                <div style="display:flex;justify-content:space-between;gap:8px;padding:0 8px 8px"><button type="button" sc-camel-on-click="{{ dobCal.clear }}" class="pill pill-line">Clear</button><button type="button" sc-camel-on-click="{{ dobCal.done }}" class="pill pill-ink">Done</button></div>
               </div>
             </sc-if>
           </div>
-          <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="stack-8">
             <span style="font-size:14px;font-weight:500;color:var(--ink)">Gender</span>
             <div style="display:flex;flex-wrap:wrap;gap:8px">
               <sc-for list="{{ genders }}" as="g" hint-placeholder-count="4">
@@ -366,22 +391,22 @@ a:hover{opacity:.45}
 
     <!-- 2 photo -->
     <sc-if value="{{ s2 }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Your photo" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">A photo of you</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">For the site register, so the gate knows who you are. Head and shoulders, no hat or glasses.</p>
+      <section data-screen-label="Your photo" class="stack-24">
+        <div class="stack-10">
+          <h1 class="title">A photo of you</h1>
+          <p class="lead">For the site register, so the gate knows who you are. Head and shoulders, no hat or glasses.</p>
         </div>
         <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px;align-items:center;width:fit-content;margin:0 auto">
           <sc-if value="{{ hasSelfie }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;flex-direction:column;gap:8px;align-items:center;padding:0"><button type="button" sc-camel-on-click="{{ viewSelfie }}" aria-label="View your photo" style="width:240px;aspect-ratio:3/4;display:block;border-radius:12px;border:none;padding:0;cursor:zoom-in;background:var(--bg3) center/cover no-repeat;background-image:{{ selfieBg }}"></button><div style="display:flex;align-items:center;gap:8px;padding:0 4px"><button type="button" sc-camel-on-click="{{ cam.onSelfieFile }}" style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;font-size:14px;color:var(--ink);cursor:pointer;font:inherit;font-size:14px;background:none;border:none;padding:0" style-hover="opacity:.45"><span class="i i-camera" style="width:24px;height:24px"></span>Retake</button><label aria-label="Upload instead" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><input type="file" accept="image/*" sc-camel-on-change="{{ onSelfieFile }}" style="display:none"><span class="i i-upload" style="width:40px;height:40px"></span></label></div></div>
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:center;padding:0"><button type="button" sc-camel-on-click="{{ viewSelfie }}" aria-label="View your photo" style="width:240px;aspect-ratio:3/4;display:block;border-radius:12px;border:none;padding:0;cursor:zoom-in;background:var(--bg3) center/cover no-repeat;background-image:{{ selfieBg }}"></button><div style="display:flex;align-items:center;gap:8px;padding:0 4px"><button type="button" sc-camel-on-click="{{ cam.onSelfieFile }}" style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;font-size:14px;color:var(--ink);cursor:pointer;font:inherit;font-size:14px;background:none;border:none;padding:0" style-hover="opacity:.45"><span class="i i-camera i-24"></span>Retake</button><label aria-label="Upload instead" class="icon-btn"><input type="file" accept="image/*" sc-camel-on-change="{{ onSelfieFile }}" class="hide"><span class="i i-upload i-40"></span></label></div></div>
           </sc-if>
           <sc-if value="{{ noSelfie }}" hint-placeholder-val="{{ true }}">
-            <button type="button" sc-camel-on-click="{{ cam.onSelfieFile }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:240px;aspect-ratio:3/4;border:1px dashed var(--dash);border-radius:12px;cursor:pointer;color:var(--ink);text-align:center;padding:16px;box-sizing:border-box;font:inherit;background:none" style-hover="border-color:var(--ink)">
-              <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><span class="i i-camera" style="width:40px;height:40px"></span></span>
+            <button type="button" sc-camel-on-click="{{ cam.onSelfieFile }}" class="drop" style="width:240px;aspect-ratio:3/4;box-sizing:border-box">
+              <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><span class="i i-camera i-40"></span></span>
               <span style="font-size:15px;font-weight:500">Take your photo</span>
-              <span style="font-size:13px;color:var(--muted)">Opens the front camera</span>
+              <span class="meta">Opens the front camera</span>
             </button>
-            <label style="display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><input type="file" accept="image/*" sc-camel-on-change="{{ onSelfieFile }}" style="display:none"><span class="i i-upload" style="width:32px;height:32px"></span>Upload from your phone</label>
+            <label class="text-btn"><input type="file" accept="image/*" sc-camel-on-change="{{ onSelfieFile }}" class="hide"><span class="i i-upload i-32"></span>Upload from your phone</label>
           </sc-if>
         </div>
       </section>
@@ -389,56 +414,56 @@ a:hover{opacity:.45}
 
     <!-- 3 driving licence -->
     <sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Driving licence" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Driving licence</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">If you hold one, photograph both sides. We need it before you drive anything for {{ subcontractor }}.</p>
+      <section data-screen-label="Driving licence" class="stack-24">
+        <div class="stack-10">
+          <h1 class="title">Driving licence</h1>
+          <p class="lead">If you hold one, photograph both sides. We need it before you drive anything for {{ subcontractor }}.</p>
         </div>
-        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+        <div class="card">
           <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
             <sc-if value="{{ hasLicFront }}" hint-placeholder-val="{{ false }}">
-              <div style="background:var(--work);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:6px"><button type="button" sc-camel-on-click="{{ viewLicFront }}" aria-label="View front of licence" style="width:100%;aspect-ratio:85/54;border-radius:6px;border:none;padding:0;cursor:zoom-in;background:var(--bg3) center/cover no-repeat;background-image:{{ licFrontBg }}"></button><div style="display:flex;justify-content:space-between;align-items:center;padding-left:10px"><span style="font-size:13px;color:var(--muted)">Front</span><span style="display:flex"><label aria-label="Upload instead" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><input type="file" accept="image/*" sc-camel-on-change="{{ onLicFront }}" style="display:none"><span class="i i-upload" style="width:40px;height:40px"></span></label><button type="button" sc-camel-on-click="{{ cam.onLicFront }}" aria-label="Retake" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;font:inherit;font-size:14px;background:none;border:none;padding:0" style-hover="opacity:.45"><span class="i i-camera" style="width:40px;height:40px"></span></button></span></div></div>
+              <div style="background:var(--work);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:6px"><button type="button" sc-camel-on-click="{{ viewLicFront }}" aria-label="View front of licence" style="width:100%;aspect-ratio:85/54;border-radius:6px;border:none;padding:0;cursor:zoom-in;background:var(--bg3) center/cover no-repeat;background-image:{{ licFrontBg }}"></button><div style="display:flex;justify-content:space-between;align-items:center;padding-left:10px"><span class="meta">Front</span><span style="display:flex"><label aria-label="Upload instead" class="icon-btn"><input type="file" accept="image/*" sc-camel-on-change="{{ onLicFront }}" class="hide"><span class="i i-upload i-40"></span></label><button type="button" sc-camel-on-click="{{ cam.onLicFront }}" aria-label="Retake" class="icon-btn-ink"><span class="i i-camera i-40"></span></button></span></div></div>
             </sc-if>
             <sc-if value="{{ noLicFront }}" hint-placeholder-val="{{ true }}">
-              <button type="button" sc-camel-on-click="{{ cam.onLicFront }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:150px;border:1px dashed var(--dash);border-radius:12px;cursor:pointer;color:var(--ink);text-align:center;padding:16px;font:inherit;background:none" style-hover="border-color:var(--ink)">
-                <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><span class="i i-camera" style="width:40px;height:40px"></span></span>
+              <button type="button" sc-camel-on-click="{{ cam.onLicFront }}" class="drop" style="min-height:150px">
+                <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><span class="i i-camera i-40"></span></span>
                 <span style="font-size:15px;font-weight:500">Front</span>
               </button>
             </sc-if>
             <sc-if value="{{ hasLicBack }}" hint-placeholder-val="{{ false }}">
-              <div style="background:var(--work);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:6px"><button type="button" sc-camel-on-click="{{ viewLicBack }}" aria-label="View back of licence" style="width:100%;aspect-ratio:85/54;border-radius:6px;border:none;padding:0;cursor:zoom-in;background:var(--bg3) center/cover no-repeat;background-image:{{ licBackBg }}"></button><div style="display:flex;justify-content:space-between;align-items:center;padding-left:10px"><span style="font-size:13px;color:var(--muted)">Back</span><span style="display:flex"><label aria-label="Upload instead" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><input type="file" accept="image/*" sc-camel-on-change="{{ onLicBack }}" style="display:none"><span class="i i-upload" style="width:40px;height:40px"></span></label><button type="button" sc-camel-on-click="{{ cam.onLicBack }}" aria-label="Retake" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;font:inherit;font-size:14px;background:none;border:none;padding:0" style-hover="opacity:.45"><span class="i i-camera" style="width:40px;height:40px"></span></button></span></div></div>
+              <div style="background:var(--work);border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:6px"><button type="button" sc-camel-on-click="{{ viewLicBack }}" aria-label="View back of licence" style="width:100%;aspect-ratio:85/54;border-radius:6px;border:none;padding:0;cursor:zoom-in;background:var(--bg3) center/cover no-repeat;background-image:{{ licBackBg }}"></button><div style="display:flex;justify-content:space-between;align-items:center;padding-left:10px"><span class="meta">Back</span><span style="display:flex"><label aria-label="Upload instead" class="icon-btn"><input type="file" accept="image/*" sc-camel-on-change="{{ onLicBack }}" class="hide"><span class="i i-upload i-40"></span></label><button type="button" sc-camel-on-click="{{ cam.onLicBack }}" aria-label="Retake" class="icon-btn-ink"><span class="i i-camera i-40"></span></button></span></div></div>
             </sc-if>
             <sc-if value="{{ noLicBack }}" hint-placeholder-val="{{ true }}">
-              <button type="button" sc-camel-on-click="{{ cam.onLicBack }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:150px;border:1px dashed var(--dash);border-radius:12px;cursor:pointer;color:var(--ink);text-align:center;padding:16px;font:inherit;background:none" style-hover="border-color:var(--ink)">
-                <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><span class="i i-camera" style="width:40px;height:40px"></span></span>
+              <button type="button" sc-camel-on-click="{{ cam.onLicBack }}" class="drop" style="min-height:150px">
+                <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><span class="i i-camera i-40"></span></span>
                 <span style="font-size:15px;font-weight:500">Back</span>
               </button>
             </sc-if>
           </div>
           <p style="font-size:13px;color:var(--muted);text-align:center;padding:4px 16px 0;text-wrap:pretty">Flat, in good light. For reads the categories and expiry.</p>
-          <div style="display:flex;justify-content:center;gap:16px"><label style="display:flex;align-items:center;gap:4px;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><input type="file" accept="image/*" sc-camel-on-change="{{ onLicUpload }}" style="display:none"><span class="i i-upload" style="width:32px;height:32px"></span>Upload from your phone</label></div>
+          <div style="display:flex;justify-content:center;gap:16px"><label style="display:flex;align-items:center;gap:4px;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><input type="file" accept="image/*" sc-camel-on-change="{{ onLicUpload }}" class="hide"><span class="i i-upload i-32"></span>Upload from your phone</label></div>
         </div>
         <sc-if value="{{ hasLicence }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="stack-16">
             <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" auto-capitalize="sentences" label="Licence number" placeholder="BAILE 911034 TB9AB" value="{{ d.licNumber }}" on-change="{{ set.licNumber }}" hint="Field 5 on the front." hint-size="100%,96px"></x-import>
-          <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="stack-8">
             <div style="display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:4px;align-items:end">
               <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Expiry date" type="tel" placeholder="dd/mm/yyyy" value="{{ expCal.typed }}" on-change="{{ expCal.onTyped }}" hint-size="100%,72px"></x-import>
               <button type="button" sc-camel-on-click="{{ expCal.toggle }}" aria-label="{{ expCal.label }}" aria-expanded="{{ expCal.open }}" style="background:none;border:none;padding:0;width:44px;height:44px;margin-bottom:2px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;transition:color .2s" style-hover="color:var(--ink)"><sc-if value="{{ expCal.closed }}" hint-placeholder-val="{{ true }}"><svg width="22" height="22" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg></sc-if><sc-if value="{{ expCal.open }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="x" size="18" hint-size="18px,18px"></x-import></sc-if></button>
             </div>
             <p style="font-size:13px;color:var(--muted);margin:-2px 0 0">Field 4b on the front.</p>
             <sc-if value="{{ expCal.open }}" hint-placeholder-val="{{ false }}">
-              <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+              <div class="card">
                 <div style="background:var(--work);border-radius:12px;padding:4px 4px 8px;display:flex;flex-direction:column;gap:4px">
                   <div style="display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center">
-                    <button type="button" sc-camel-on-click="{{ expCal.prevYear }}" aria-label="Previous year" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(-5px)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></button>
+                    <button type="button" sc-camel-on-click="{{ expCal.prevYear }}" aria-label="Previous year" class="arrow arrow-back"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></button>
                     <span style="text-align:center;font-size:15px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums">{{ expCal.year }}</span>
-                    <button type="button" sc-camel-on-click="{{ expCal.nextYear }}" aria-label="Next year" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(5px)"><span style="display:flex;transform:rotate(180deg)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></span></button>
+                    <button type="button" sc-camel-on-click="{{ expCal.nextYear }}" aria-label="Next year" class="arrow arrow-fwd"><span style="display:flex;transform:rotate(180deg)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></span></button>
                   </div>
                   <div style="display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center">
-                    <button type="button" sc-camel-on-click="{{ expCal.prevMonth }}" aria-label="Previous month" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(-5px)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></button>
+                    <button type="button" sc-camel-on-click="{{ expCal.prevMonth }}" aria-label="Previous month" class="arrow arrow-back"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></button>
                     <span style="text-align:center;font-size:15px;color:var(--ink)">{{ expCal.month }}</span>
-                    <button type="button" sc-camel-on-click="{{ expCal.nextMonth }}" aria-label="Next month" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;transition:transform .25s cubic-bezier(.25,.46,.45,.94)" style-hover="transform:translateX(5px)"><span style="display:flex;transform:rotate(180deg)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></span></button>
+                    <button type="button" sc-camel-on-click="{{ expCal.nextMonth }}" aria-label="Next month" class="arrow arrow-fwd"><span style="display:flex;transform:rotate(180deg)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="back" size="18" hint-size="18px,18px"></x-import></span></button>
                   </div>
                   <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));padding:0 4px">
                     <sc-for list="{{ expCal.days }}" as="wd" hint-placeholder-count="7"><span style="text-align:center;font-size:13px;color:var(--muted);padding:6px 0">{{ wd }}</span></sc-for>
@@ -447,11 +472,11 @@ a:hover{opacity:.45}
                     <sc-for list="{{ expCal.cells }}" as="c" hint-placeholder-count="35"><button type="button" sc-camel-on-click="{{ c.pick }}" style="height:40px;border-radius:999px;border:1px solid {{ c.border }};background:{{ c.bg }};color:{{ c.color }};opacity:{{ c.opacity }};font-size:15px;font-variant-numeric:tabular-nums;cursor:pointer;padding:0" style-hover="background:var(--bg3)">{{ c.n }}</button></sc-for>
                   </div>
                 </div>
-                <div style="display:flex;justify-content:space-between;gap:8px;padding:0 8px 8px"><button type="button" sc-camel-on-click="{{ expCal.clear }}" style="min-height:44px;padding:0 20px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:15px;cursor:pointer;transition:border-color .2s" style-hover="border-color:var(--ink)">Clear</button><button type="button" sc-camel-on-click="{{ expCal.done }}" style="min-height:44px;padding:0 24px;border-radius:999px;border:none;background:var(--ink);color:var(--bg);font-size:15px;font-weight:500;cursor:pointer;transition:background .2s" style-hover="background:var(--brand)">Done</button></div>
+                <div style="display:flex;justify-content:space-between;gap:8px;padding:0 8px 8px"><button type="button" sc-camel-on-click="{{ expCal.clear }}" class="pill pill-line">Clear</button><button type="button" sc-camel-on-click="{{ expCal.done }}" class="pill pill-ink">Done</button></div>
               </div>
             </sc-if>
           </div>
-            <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="stack-8">
               <div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:end">
                 <button type="button" sc-camel-on-click="{{ pickNoPoints }}" aria-pressed="{{ noPointsOn }}" style="min-height:44px;margin-bottom:2px;padding:0 18px;border-radius:999px;border:1px solid {{ noPointsBorder }};background:{{ noPointsBg }};color:{{ noPointsColor }};font-size:15px;cursor:pointer;transition:border-color .2s" style-hover="border-color:var(--ink)">None</button>
                 <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Points on your licence" type="tel" placeholder="0" value="{{ pointsTyped }}" on-change="{{ onPoints }}" hint-size="100%,72px"></x-import>
@@ -466,30 +491,30 @@ a:hover{opacity:.45}
 
     <!-- 4 cards -->
     <sc-if value="{{ s4 }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Your cards" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Your cards</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">Photograph both sides of each card you hold. CSCS, CPCS, IPAF, Streetworks, first aid. For reads the number and date so you don't type them.</p>
+      <section data-screen-label="Your cards" class="stack-24">
+        <div class="stack-10">
+          <h1 class="title">Your cards</h1>
+          <p class="lead">Photograph both sides of each card you hold. CSCS, CPCS, IPAF, Streetworks, first aid. For reads the number and date so you don't type them.</p>
         </div>
-        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+        <div class="card">
           <sc-if value="{{ hasCards }}" hint-placeholder-val="{{ false }}">
             <ul style="list-style:none;margin:0;padding:0;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
               <sc-for list="{{ cards }}" as="c" hint-placeholder-count="0">
                 <li style="display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center;padding:6px 12px 6px 6px;border-bottom:1px solid var(--dim)">
                   <span style="display:flex;gap:4px"><button type="button" sc-camel-on-click="{{ c.viewFront }}" aria-label="View front of card" style="width:60px;height:44px;border-radius:6px;border:none;padding:0;cursor:zoom-in;background:var(--bg3) center/cover no-repeat;background-image:{{ c.bg }}"></button><button type="button" sc-camel-on-click="{{ c.viewBack }}" aria-label="View back of card" style="width:60px;height:44px;border-radius:6px;border:1px dashed {{ c.backBorder }};box-sizing:border-box;padding:0;cursor:zoom-in;background:var(--bg3) center/cover no-repeat;background-image:{{ c.backBg }}"></button></span>
-                  <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ c.name }}</span><span style="font-size:13px;color:var(--muted)">{{ c.detail }}</span></span>
-                  <span style="display:flex;align-items:center;gap:8px"><sc-if value="{{ c.needsBack }}" hint-placeholder-val="{{ false }}"><button type="button" sc-camel-on-click="{{ c.shootBack }}" style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 16px 0 12px;border-radius:999px;border:none;background:var(--ink);color:var(--bg);font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .2s" style-hover="background:var(--brand)"><span class="i i-camera" style="width:20px;height:20px"></span>Photograph the back</button></sc-if><sc-if value="{{ c.complete }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ c.tone }}" hint-size="70px,26px">{{ c.word }}</x-import></sc-if><button type="button" sc-camel-on-click="{{ c.remove }}" aria-label="Remove card" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="x" size="16" hint-size="16px,16px"></x-import></button></span>
+                  <span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ c.name }}</span><span class="meta">{{ c.detail }}</span></span>
+                  <span style="display:flex;align-items:center;gap:8px"><sc-if value="{{ c.needsBack }}" hint-placeholder-val="{{ false }}"><button type="button" sc-camel-on-click="{{ c.shootBack }}" style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 16px 0 12px;border-radius:999px;border:none;background:var(--ink);color:var(--bg);font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .2s" style-hover="background:var(--brand)"><span class="i i-camera i-20"></span>Photograph the back</button></sc-if><sc-if value="{{ c.complete }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.StatusTag" tone="{{ c.tone }}" hint-size="70px,26px">{{ c.word }}</x-import></sc-if><button type="button" sc-camel-on-click="{{ c.remove }}" aria-label="Remove card" style="background:none;border:none;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="x" size="16" hint-size="16px,16px"></x-import></button></span>
                 </li>
               </sc-for>
             </ul>
           </sc-if>
           <sc-if value="{{ showAddRow }}" hint-placeholder-val="{{ false }}"><button type="button" sc-camel-on-click="{{ startAddCard }}" aria-label="Add another card" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:52px;padding:0 4px 0 16px;border:none;border-radius:12px;background:none;color:var(--ink);font:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:opacity .2s" style-hover="opacity:.45"><span>Add another card</span><span style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Icon" name="cross" size="18" hint-size="18px,18px"></x-import></span></button></sc-if>
-          <sc-if value="{{ showAddOptions }}" hint-placeholder-val="{{ true }}"><button type="button" sc-camel-on-click="{{ cam.onCardFile }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px;border:1px dashed var(--dash);border-radius:12px;cursor:pointer;color:var(--ink);text-align:center;padding:16px;font:inherit;background:none" style-hover="border-color:var(--ink)">
-            <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><span class="i i-camera" style="width:40px;height:40px"></span></span>
+          <sc-if value="{{ showAddOptions }}" hint-placeholder-val="{{ true }}"><button type="button" sc-camel-on-click="{{ cam.onCardFile }}" class="drop" style="min-height:120px">
+            <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><span class="i i-camera i-40"></span></span>
             <span style="font-size:15px;font-weight:500">{{ addCardLabel }}</span>
-            <span style="font-size:13px;color:var(--muted)">{{ addCardHint }}</span>
+            <span class="meta">{{ addCardHint }}</span>
           </button>
-          <label style="display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><input type="file" accept="image/*" sc-camel-on-change="{{ onCardFile }}" style="display:none"><span class="i i-upload" style="width:32px;height:32px"></span>Upload from your phone</label></sc-if>
+          <label class="text-btn"><input type="file" accept="image/*" sc-camel-on-change="{{ onCardFile }}" class="hide"><span class="i i-upload i-32"></span>Upload from your phone</label></sc-if>
         </div>
         <p style="font-size:14px;line-height:1.6;color:var(--muted);text-wrap:pretty;padding:0 16px">No cards yet? Tap Next. {{ contact }} can sort them with you on your first day.</p>
       </section>
@@ -497,12 +522,12 @@ a:hover{opacity:.45}
 
     <!-- 5 right to work -->
     <sc-if value="{{ s5 }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Right to work" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Right to work</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">The law says {{ subcontractor }} has to check this before you start. Pick what you have.</p>
+      <section data-screen-label="Right to work" class="stack-24">
+        <div class="stack-10">
+          <h1 class="title">Right to work</h1>
+          <p class="lead">The law says {{ subcontractor }} has to check this before you start. Pick what you have.</p>
         </div>
-        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+        <div class="card">
           <ul style="list-style:none;margin:0;padding:0;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
             <sc-for list="{{ rtwOptions }}" as="r" hint-placeholder-count="3">
               <li style="border-bottom:1px solid var(--dim)"><button type="button" sc-camel-on-click="{{ r.pick }}" aria-pressed="{{ r.on }}" style="width:100%;text-align:left;background:{{ r.bg }};border:none;padding:12px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer;color:var(--ink);min-height:56px" style-hover="background:var(--bg3)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:15px;color:var(--ink)">{{ r.name }}</span><span style="font-size:13px;color:var(--muted);text-wrap:pretty">{{ r.detail }}</span></span><span style="width:20px;height:20px;border-radius:999px;border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="width:10px;height:10px;border-radius:999px;background:var(--ink);display:{{ r.dotDisplay }}"></span></span></button></li>
@@ -510,15 +535,15 @@ a:hover{opacity:.45}
           </ul>
           <sc-if value="{{ rtwNeedsPhoto }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ hasRtwPhoto }}" hint-placeholder-val="{{ false }}">
-              <div style="background:var(--work);border-radius:12px;padding:6px 12px 6px 6px;display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:14px;align-items:center"><button type="button" sc-camel-on-click="{{ viewRtw }}" aria-label="View document photo" style="width:60px;height:44px;border-radius:6px;border:none;padding:0;cursor:zoom-in;background:var(--bg3) center/cover no-repeat;background-image:{{ rtwBg }}"></button><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;color:var(--ink)">{{ rtwPhotoName }}</span><span style="font-size:13px;color:var(--muted)">Photo added</span></span><span style="display:flex"><label aria-label="Upload instead" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><input type="file" accept="image/*" sc-camel-on-change="{{ onRtwFile }}" style="display:none"><span class="i i-upload" style="width:40px;height:40px"></span></label><button type="button" sc-camel-on-click="{{ cam.onRtwFile }}" aria-label="Retake" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;font:inherit;font-size:14px;background:none;border:none;padding:0" style-hover="opacity:.45"><span class="i i-camera" style="width:40px;height:40px"></span></button></span></div>
+              <div style="background:var(--work);border-radius:12px;padding:6px 12px 6px 6px;display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:14px;align-items:center"><button type="button" sc-camel-on-click="{{ viewRtw }}" aria-label="View document photo" style="width:60px;height:44px;border-radius:6px;border:none;padding:0;cursor:zoom-in;background:var(--bg3) center/cover no-repeat;background-image:{{ rtwBg }}"></button><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;color:var(--ink)">{{ rtwPhotoName }}</span><span class="meta">Photo added</span></span><span style="display:flex"><label aria-label="Upload instead" class="icon-btn"><input type="file" accept="image/*" sc-camel-on-change="{{ onRtwFile }}" class="hide"><span class="i i-upload i-40"></span></label><button type="button" sc-camel-on-click="{{ cam.onRtwFile }}" aria-label="Retake" class="icon-btn-ink"><span class="i i-camera i-40"></span></button></span></div>
             </sc-if>
             <sc-if value="{{ noRtwPhoto }}" hint-placeholder-val="{{ true }}">
-              <button type="button" sc-camel-on-click="{{ cam.onRtwFile }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:120px;border:1px dashed var(--dash);border-radius:12px;cursor:pointer;color:var(--ink);text-align:center;padding:16px;font:inherit;background:none" style-hover="border-color:var(--ink)">
-                <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><span class="i i-camera" style="width:40px;height:40px"></span></span>
+              <button type="button" sc-camel-on-click="{{ cam.onRtwFile }}" class="drop" style="min-height:120px">
+                <span aria-hidden="true" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:var(--ink)"><span class="i i-camera i-40"></span></span>
                 <span style="font-size:15px;font-weight:500">Photograph your {{ rtwPhotoName }}</span>
-                <span style="font-size:13px;color:var(--muted)">{{ rtwPhotoHint }}</span>
+                <span class="meta">{{ rtwPhotoHint }}</span>
               </button>
-              <label style="display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;font-size:14px;color:var(--muted);cursor:pointer" style-hover="color:var(--ink)"><input type="file" accept="image/*" sc-camel-on-change="{{ onRtwFile }}" style="display:none"><span class="i i-upload" style="width:32px;height:32px"></span>Upload from your phone</label>
+              <label class="text-btn"><input type="file" accept="image/*" sc-camel-on-change="{{ onRtwFile }}" class="hide"><span class="i i-upload i-32"></span>Upload from your phone</label>
             </sc-if>
           </sc-if>
           <sc-if value="{{ rtwNeedsCode }}" hint-placeholder-val="{{ false }}">
@@ -530,12 +555,12 @@ a:hover{opacity:.45}
 
     <!-- 6 pay -->
     <sc-if value="{{ s6 }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Getting paid" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Getting paid</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">Where your wages go. Only {{ contact }} and the accounts team see this.</p>
+      <section data-screen-label="Getting paid" class="stack-24">
+        <div class="stack-10">
+          <h1 class="title">Getting paid</h1>
+          <p class="lead">Where your wages go. Only {{ contact }} and the accounts team see this.</p>
         </div>
-        <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="stack-16">
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="National Insurance number" auto-capitalize="characters" auto-complete="off" spell-check="false" max-length="13" placeholder="QQ 12 34 56 C" value="{{ d.ni }}" on-change="{{ set.ni }}" hint="On your payslip, P60 or the letter from HMRC. Older numbers may not have the last letter." hint-size="100%,96px"></x-import>
           <div style="display:flex;flex-direction:column;gap:4px;padding-top:8px">
             <h2 style="font-size:20px;font-weight:500;color:var(--ink)">Your bank account</h2>
@@ -552,12 +577,12 @@ a:hover{opacity:.45}
 
     <!-- 7 emergency -->
     <sc-if value="{{ s7 }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Emergency contact" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">If something happens on site</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">Who should we call?</p>
+      <section data-screen-label="Emergency contact" class="stack-24">
+        <div class="stack-10">
+          <h1 class="title">If something happens on site</h1>
+          <p class="lead">Who should we call?</p>
         </div>
-        <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="stack-16">
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" auto-capitalize="sentences" label="Their name" placeholder="Claire Bailey" value="{{ d.ecName }}" on-change="{{ set.ecName }}" hint-size="100%,72px"></x-import>
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" auto-capitalize="sentences" label="Who they are to you" placeholder="Partner, parent, friend" value="{{ d.ecRel }}" on-change="{{ set.ecRel }}" hint-size="100%,72px"></x-import>
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Their mobile" type="tel" placeholder="07700 900859" value="{{ d.ecPhone }}" on-change="{{ set.ecPhone }}" hint-size="100%,72px"></x-import>
@@ -567,12 +592,12 @@ a:hover{opacity:.45}
 
     <!-- 8 check and sign -->
     <sc-if value="{{ s8 }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Check and sign" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink)">Check and sign</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">Have a look, then sign below to say it's right.</p>
+      <section data-screen-label="Check and sign" class="stack-24">
+        <div class="stack-10">
+          <h1 class="title">Check and sign</h1>
+          <p class="lead">Have a look, then sign below to say it's right.</p>
         </div>
-        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+        <div class="card">
           <sc-for list="{{ review }}" as="g" hint-placeholder-count="6">
             <div style="background:var(--work);border-radius:12px;overflow:hidden">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 8px 0 16px"><span style="font-size:14px;font-weight:500;color:var(--ink)">{{ g.title }}</span><button type="button" sc-camel-on-click="{{ g.edit }}" style="background:none;border:none;padding:0 8px;min-height:40px;font-size:14px;font-weight:500;color:var(--brand-shade-1);cursor:pointer;transition:color .2s" style-hover="color:var(--ink)">Edit</button></div>
@@ -584,7 +609,7 @@ a:hover{opacity:.45}
             </div>
           </sc-for>
         </div>
-        <div style="background:var(--bg2);border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
+        <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 8px 0 16px"><span style="font-size:14px;font-weight:500;color:var(--ink)">Sign with your finger</span><button type="button" sc-camel-on-click="{{ clearSig }}" style="background:none;border:none;padding:0 8px;min-height:40px;font-size:14px;color:var(--muted);cursor:pointer;display:{{ clearSigDisplay }}" style-hover="color:var(--ink)">Clear</button></div>
           <canvas ref="{{ sigRef }}" sc-camel-on-pointer-down="{{ sigDown }}" sc-camel-on-pointer-move="{{ sigMove }}" sc-camel-on-pointer-up="{{ sigUp }}" sc-camel-on-pointer-leave="{{ sigUp }}" style="width:100%;height:160px;display:block;background:#FFFFFF;border-radius:12px;touch-action:none;cursor:crosshair"></canvas>
           <p style="font-size:13px;line-height:1.5;color:var(--muted);text-wrap:pretty;padding:4px 16px 8px">By signing you confirm these details are true and that {{ subcontractor }} may hold them for your employment.</p>
@@ -594,15 +619,15 @@ a:hover{opacity:.45}
 
     <!-- 9 done -->
     <sc-if value="{{ s9 }}" hint-placeholder-val="{{ false }}">
-      <section data-screen-label="Sent" style="display:flex;flex-direction:column;gap:24px">
-        <div style="display:flex;flex-direction:column;gap:10px">
+      <section data-screen-label="Sent" class="stack-24">
+        <div class="stack-10">
           <h1 style="font-size:28px;font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--ink);text-wrap:pretty">Sent to {{ contact }}.</h1>
-          <p style="font-size:15px;line-height:1.6;text-wrap:pretty">{{ doneBody }}</p>
+          <p class="lead">{{ doneBody }}</p>
         </div>
         <div style="background:var(--bg2);border-radius:20px;padding:8px">
           <dl style="margin:0;background:var(--work);border-radius:12px;display:flex;flex-direction:column;overflow:hidden">
             <sc-for list="{{ doneRows }}" as="row" hint-placeholder-count="3">
-              <div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;border-bottom:1px solid var(--dim)"><dt style="font-size:13px;color:var(--muted)">{{ row.k }}</dt><dd style="margin:0;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ row.v }}</dd></div>
+              <div style="display:flex;justify-content:space-between;gap:16px;padding:11px 16px;border-bottom:1px solid var(--dim)"><dt class="meta">{{ row.k }}</dt><dd style="margin:0;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right">{{ row.v }}</dd></div>
             </sc-for>
           </dl>
         </div>
@@ -641,7 +666,7 @@ a:hover{opacity:.45}
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:88px 20px 32px">
             <div style="width:100%;max-width:400px;background:#F4EFE6;border-radius:20px;padding:8px;display:flex;flex-direction:column;gap:8px">
               <div style="background:#FBF9F5;border-radius:12px;padding:20px 16px;display:flex;flex-direction:column;gap:8px"><span style="font-size:20px;font-weight:500;color:#000">Camera not available</span><p style="font-size:15px;line-height:1.5;color:#4A4038;text-wrap:pretty;margin:0">Allow camera access in your browser, or upload a photo from your phone instead.</p></div>
-              <label style="display:flex;align-items:center;justify-content:center;gap:8px;margin:0 8px 8px;min-height:48px;border-radius:999px;background:#000;color:#F4EFE6;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s" style-hover="background:var(--brand)"><input type="file" accept="image/*" sc-camel-on-change="{{ camUpload }}" style="display:none"><span class="i i-upload" style="width:40px;height:40px"></span>Upload a photo</label>
+              <label style="display:flex;align-items:center;justify-content:center;gap:8px;margin:0 8px 8px;min-height:48px;border-radius:999px;background:#000;color:#F4EFE6;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s" style-hover="background:var(--brand)"><input type="file" accept="image/*" sc-camel-on-change="{{ camUpload }}" class="hide"><span class="i i-upload i-40"></span>Upload a photo</label>
             </div>
           </div>
         </sc-if>
@@ -655,12 +680,12 @@ a:hover{opacity:.45}
       </div>
       <div style="flex-shrink:0;background:#F4EFE6;border-radius:20px 20px 0 0;padding:16px 20px calc(16px + env(safe-area-inset-bottom, 0px));display:flex;align-items:center;justify-content:center;gap:12px;min-height:112px;max-width:480px;width:100%;margin:0 auto;box-sizing:border-box">
         <sc-if value="{{ camLive }}" hint-placeholder-val="{{ true }}">
-          <span style="flex:1;display:flex"><label style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;color:#4A4038;font-size:14px;cursor:pointer" style-hover="color:#000"><input type="file" accept="image/*" sc-camel-on-change="{{ camUpload }}" style="display:none"><span class="i i-upload" style="width:40px;height:40px"></span>Upload</label></span>
-          <button type="button" sc-camel-on-click="{{ camShutter }}" aria-label="Take photo" style="width:76px;height:76px;border-radius:999px;border:3px solid #000;background:transparent;padding:4px;cursor:pointer;display:flex;box-sizing:border-box"><span style="flex:1;border-radius:999px;background:#000;display:flex;align-items:center;justify-content:center;color:#F4EFE6;transition:background .2s" style-hover="background:var(--brand)"><span class="i i-camera" style="width:24px;height:24px"></span></span></button>
+          <span style="flex:1;display:flex"><label style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;color:#4A4038;font-size:14px;cursor:pointer" style-hover="color:#000"><input type="file" accept="image/*" sc-camel-on-change="{{ camUpload }}" class="hide"><span class="i i-upload i-40"></span>Upload</label></span>
+          <button type="button" sc-camel-on-click="{{ camShutter }}" aria-label="Take photo" style="width:76px;height:76px;border-radius:999px;border:3px solid #000;background:transparent;padding:4px;cursor:pointer;display:flex;box-sizing:border-box"><span style="flex:1;border-radius:999px;background:#000;display:flex;align-items:center;justify-content:center;color:#F4EFE6;transition:background .2s" style-hover="background:var(--brand)"><span class="i i-camera i-24"></span></span></button>
           <span style="flex:1"></span>
         </sc-if>
         <sc-if value="{{ camShot }}" hint-placeholder-val="{{ false }}">
-          <button type="button" sc-camel-on-click="{{ camRetake }}" style="flex:1;min-height:48px;border-radius:999px;border:1px solid rgba(0,0,0,.16);background:transparent;color:#000;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="border-color:#000"><span class="i i-camera" style="width:20px;height:20px"></span>Retake</button>
+          <button type="button" sc-camel-on-click="{{ camRetake }}" style="flex:1;min-height:48px;border-radius:999px;border:1px solid rgba(0,0,0,.16);background:transparent;color:#000;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="border-color:#000"><span class="i i-camera i-20"></span>Retake</button>
           <button type="button" sc-camel-on-click="{{ camUse }}" style="flex:1;min-height:48px;border-radius:999px;border:none;background:#000;color:#F4EFE6;font-size:15px;font-weight:500;cursor:pointer;transition:background .2s" style-hover="background:var(--brand)">Use photo</button>
         </sc-if>
         <sc-if value="{{ camError }}" hint-placeholder-val="{{ false }}">
