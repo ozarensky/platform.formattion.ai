@@ -707,17 +707,21 @@ a:hover{opacity:.45}
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;: {&quot;width&quot;: 402, &quot;height&quot;: 874}, &quot;subcontractor&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Woodleaze&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;contact&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Ion&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;firstName&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Tom&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startDate&quot;: {&quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Monday 5 October&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Invite&quot;}, &quot;startStep&quot;: {&quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 0, &quot;min&quot;: 0, &quot;max&quot;: 9, &quot;step&quot;: 1, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Preview&quot;}, &quot;showCamera&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Preview&quot;}}">
-const cap = v => v.charAt(0).toUpperCase() + v.slice(1);
 // The link carries the invite token: join.html?t=<token>. Without one the page runs as the
 // preview it always was (nothing leaves the phone).
 const TOKEN = new URLSearchParams(location.search).get('t') || '';
 const KEY = 'intake:' + (TOKEN ? TOKEN.slice(0, 12) : 'demo');
+const OFFLINE = 'No signal. Try again when you\'re back online.';
 const api = {
   call: async (fn, body) => {
     const cfg = window.FP_CONFIG || {};
+    const init = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: cfg.supabaseKey },
+      body: JSON.stringify({ token: TOKEN, ...body })
+    };
     let r;
-    try { r = await fetch(cfg.supabaseUrl + '/functions/v1/' + fn, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: cfg.supabaseKey }, body: JSON.stringify({ token: TOKEN, ...body }) }); }
-    catch (e) { throw new Error('No signal. Try again when you\'re back online.'); }
+    try { r = await fetch(cfg.supabaseUrl + '/functions/v1/' + fn, init); } catch (e) { throw new Error(OFFLINE); }
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || ('Something went wrong (' + r.status + ')'));
     return j;
@@ -727,18 +731,25 @@ const api = {
     const u = await api.call('upload-url', { kind });
     if (u.closed) throw new Error('closed');
     const blob = await (await fetch(dataUrl)).blob();
-    const r = await fetch(u.signedUrl, { method: 'PUT', headers: { 'Content-Type': blob.type || 'image/jpeg', 'x-upsert': 'true' }, body: blob });
+    const headers = { 'Content-Type': blob.type || 'image/jpeg', 'x-upsert': 'true' };
+    const r = await fetch(u.signedUrl, { method: 'PUT', headers, body: blob });
     if (!r.ok) throw new Error('The photo didn\'t upload. Check your signal and try again.');
     return u.path;
   }
 };
+const failText = e => e.message === 'closed' ? 'This link has closed.' : e.message;
+
 // Which storage slot each photo field lives in.
 const SLOT = { licFront: 'licence/front', licBack: 'licence/back', rtwPhoto: 'right-to-work/document', selfie: 'photo' };
+const cardSlot = (id, side) => 'cards/' + id + '/' + side;
 const isImg = v => typeof v === 'string' && (v.startsWith('data:') || v.startsWith('http'));
-const dateText = iso => iso ? new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
+const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+const PC_RE = /^[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}$/;
+
 // Client logos for the header, by company name. Text when a client has none yet.
 const LOGOS = { Woodleaze: 'assets/clients/woodleaze/lockup-short.svg' };
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+// What For "reads" off a card in the preview.
 const READS = [
   { name: 'CSCS Green', detail: 'No. 01234567 · to 18 Feb 2029', tone: 'ok', word: 'valid' },
   { name: 'NRSWA Streetworks', detail: 'No. 55 8821 · to 2 Dec 2026', tone: 'warn', word: 'expiring' },
@@ -746,13 +757,68 @@ const READS = [
   { name: 'First aid at work', detail: 'St John · to 14 Jan 2028', tone: 'ok', word: 'valid' }
 ];
 const RTW = [
-  { id: 'passport', name: 'UK or Irish passport', detail: 'Photograph the photo page', photo: 'passport photo page', hint: 'The page with your photo, flat and in focus.' },
+  { id: 'passport', name: 'UK or Irish passport', detail: 'Photograph the photo page', photo: 'passport photo page',
+    hint: 'The page with your photo, flat and in focus.' },
   { id: 'code', name: 'Share code', detail: 'From gov.uk, for visa and settled status holders', photo: null },
-  { id: 'brp', name: 'Biometric residence permit', detail: 'Photograph the front', photo: 'residence permit', hint: 'Front of the card, flat, in good light.' }
+  { id: 'brp', name: 'Biometric residence permit', detail: 'Photograph the front', photo: 'residence permit',
+    hint: 'Front of the card, flat, in good light.' }
 ];
-const EMPTY = { licFront: '', licBack: '', licPoints: '', licNumber: '', licExpiry: '', firstName: '', surname: '', gender: '', dob: '', trade: '', address: '', rtw: '', rtwPhoto: '', shareCode: '', ni: '', accountName: '', sortCode: '', account: '', ecName: '', ecRel: '', ecPhone: '', selfie: '', postcode: '', addrLine: '', addrLine2: '', addrTown: '', signed: false };
-const PC_RE = /^[A-Z]{1,2}\d[A-Z\d]?\d[A-Z]{2}$/;
-const fmtPc = v => { const c = v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7); return c.length > 4 ? c.slice(0, -3) + ' ' + c.slice(-3) : c; };
+const STEPS = ['', 'About you', 'Your photo', 'Driving licence', 'Your cards', 'Right to work', 'Getting paid',
+  'Emergency contact', 'Check and sign'];
+const TOTAL = 8, SENT = 9;
+const OUTLINE = [
+  { name: 'About you', need: 'Name, trade, address' }, { name: 'Your photo', need: 'For the site register' },
+  { name: 'Driving licence', need: 'If you have one' }, { name: 'Your cards', need: 'Both sides' },
+  { name: 'Right to work', need: 'Passport or share code' }, { name: 'Getting paid', need: 'NI and bank' },
+  { name: 'Emergency contact', need: 'One person' }
+];
+const EMPTY = {
+  firstName: '', surname: '', gender: '', dob: '', trade: '', address: '', postcode: '', addrLine: '', addrLine2: '', addrTown: '',
+  selfie: '', licFront: '', licBack: '', licPoints: '', licNumber: '', licExpiry: '',
+  rtw: '', rtwPhoto: '', shareCode: '', ni: '', accountName: '', sortCode: '', account: '',
+  ecName: '', ecRel: '', ecPhone: '', signed: false
+};
+// Camera presets, by the handler that receives the photo.
+const CARD = { facing: 'environment', aspect: '85/54', radius: 12 };
+const CAMERAS = {
+  onCardFile: { ...CARD, title: 'Front of the card', hint: 'Fit the front of the card in the frame.' },
+  onCardBack: { ...CARD, title: 'Back of the card', hint: 'Now turn the card over and fit the back in the frame.' },
+  onLicFront: { ...CARD, title: 'Driving licence · front', hint: 'Fit the front of the licence in the frame.' },
+  onLicBack: { ...CARD, title: 'Driving licence · back', hint: 'Now the back of the licence.' },
+  onRtwFile: { facing: 'environment', aspect: '125/88', radius: 8 },
+  onSelfieFile: { facing: 'user', aspect: '3/4', radius: 20, title: 'Your photo', hint: 'Head and shoulders, no hat or glasses.' }
+};
+
+const cap = v => v.charAt(0).toUpperCase() + v.slice(1);
+const val = e => e && e.target ? e.target.value : e;
+const or = v => v || 'Not given';
+const pad = n => String(n).padStart(2, '0');
+const dateText = iso => iso ? new Date(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
+const longDate = iso => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+const fmtPc = v => {
+  const c = v.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+  return c.length > 4 ? c.slice(0, -3) + ' ' + c.slice(-3) : c;
+};
+// 12-34-56, adding the dash as you type unless you're deleting.
+const fmtSortCode = (v, prev) => {
+  const dg = v.replace(/\D/g, '').slice(0, 6);
+  let out = (dg.match(/.{1,2}/g) || []).join('-');
+  if (v.length >= prev.length && dg.length % 2 === 0 && dg.length > 0 && dg.length < 6) out += '-';
+  return out;
+};
+// QQ 12 34 56 C: two letters, six digits, an optional A–D.
+const fmtNi = (v, prev) => {
+  let c = '';
+  for (const ch of v.toUpperCase().replace(/[^A-Z0-9]/g, '')) {
+    const i = c.length;
+    if (i < 2 ? /[A-Z]/.test(ch) : i < 8 ? /\d/.test(ch) : i === 8 && /[A-D]/.test(ch)) c += ch;
+    if (c.length === 9) break;
+  }
+  let out = [c.slice(0, 2), c.slice(2, 4), c.slice(4, 6), c.slice(6, 8), c.slice(8)].filter(Boolean).join(' ');
+  if (v.length >= prev.length && [2, 4, 6, 8].includes(c.length)) out += ' ';
+  return out;
+};
+
 // Photo as a CSS background. The runtime splits inline styles on ';', which cuts a
 // data: URL (data:image/jpeg;base64,…) in half, so data URLs go in as blob: URLs.
 const BLOBS = new Map();
@@ -760,47 +826,114 @@ const bg = src => {
   if (!src || src === 'kept') return 'none';
   if (src.startsWith('data:')) {
     let u = BLOBS.get(src);
-    if (!u) { const i = src.indexOf(','), bin = atob(src.slice(i + 1)), a = new Uint8Array(bin.length); for (let j = 0; j < bin.length; j++) a[j] = bin.charCodeAt(j); u = URL.createObjectURL(new Blob([a], { type: src.slice(5, i).split(';')[0] })); BLOBS.set(src, u); }
+    if (!u) {
+      const i = src.indexOf(','), bin = atob(src.slice(i + 1)), a = new Uint8Array(bin.length);
+      for (let j = 0; j < bin.length; j++) a[j] = bin.charCodeAt(j);
+      u = URL.createObjectURL(new Blob([a], { type: src.slice(5, i).split(';')[0] }));
+      BLOBS.set(src, u);
+    }
     src = u;
   }
   return 'url("' + src + '")';
 };
+
+// A saved copy from this phone, brought up to the current shape. Photos saved as 'kept'
+// live in Storage and come back as links from the server, so they start empty here.
+const restore = s => {
+  const d = { ...EMPTY, ...(s.d || {}), signed: false };
+  if (s.d) {
+    if (!d.trade && Array.isArray(d.trades)) d.trade = d.trades.find(x => x && x.trim()) || '';
+    delete d.trades; delete d.county; delete d.addrMode;
+    if (d.fullName && !d.firstName) { const p = d.fullName.trim().split(/\s+/); d.firstName = p.shift() || ''; d.surname = p.join(' '); }
+    if (d.licExpiry && !ISO_RE.test(d.licExpiry)) d.licExpiry = '';
+    if (d.rtw === 'none') d.rtw = '';
+    Object.keys(SLOT).forEach(k => { if (d[k] === 'kept') d[k] = ''; });
+  }
+  const cards = (s.cards || []).filter(c => c.src && c.src !== 'kept')
+    .map(c => ({ ...c, reading: false, back: c.back === 'kept' ? '' : (c.back || '') }));
+  const step = s.step || 0;
+  return { step, d, cards, resumed: step > 0 && step < SENT };
+};
+
+// What each step needs before Next.
+const READY = {
+  1: (d, x) => d.firstName.trim() && d.surname.trim() && d.dob && d.gender && (d.trade || '').trim() && x.addrOk,
+  3: (d, x) => !x.licHalf && (!d.licFront || (d.licPoints !== '' && d.licNumber.trim().length >= 16 && ISO_RE.test(d.licExpiry))),
+  4: (d, x) => !x.reading && !x.pendingBack,
+  5: (d, x) => d.rtw && (!x.rtw || !x.rtw.photo || d.rtwPhoto) && (d.rtw !== 'code' || d.shareCode.trim().length >= 9),
+  6: d => /^[A-Z]{2}\d{6}[A-D]?$/i.test(d.ni.replace(/\s/g, '')) && d.accountName.trim().length > 1
+    && d.sortCode.replace(/\D/g, '').length === 6 && d.account.replace(/\D/g, '').length === 8,
+  7: d => d.ecName.trim().length > 1 && d.ecPhone.replace(/\D/g, '').length >= 10,
+  8: d => d.signed
+};
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November',
+  'December'];
+
 class Component extends DCLogic {
-  state = { step: 0, d: { ...EMPTY }, cards: [], resumed: false, cal: {}, preview: null, camera: null, shot: null, files: {}, inv: null, ready: !TOKEN, closed: null, sending: false, notice: '' };
+  state = { step: 0, d: { ...EMPTY }, cards: [], resumed: false, cal: {}, preview: null, camera: null, shot: null, files: {},
+    inv: null, ready: !TOKEN, closed: null, sending: false, notice: '' };
   sigRef = React.createRef(); videoRef = React.createRef(); guideRef = React.createRef();
-  componentDidUpdate() { const c = this.state.camera; if (c && !this.state.shot && !c.error && this._streamFacing !== c.facing) this.startCamera(); if (!c && this._stream) this.stopCamera(); }
+
+  componentDidMount() {
+    try {
+      let raw = localStorage.getItem(KEY);
+      if (raw && !TOKEN && (JSON.parse(raw).step || 0) >= SENT) { localStorage.removeItem(KEY); raw = null; }
+      if (raw) { this.setState(restore(JSON.parse(raw))); return; }
+    } catch (e) {}
+    const st = this.props.startStep; if (st != null && st > 0) this.setState({ step: Number(st) });
+    if (TOKEN) this.loadInvite();
+    if (this.props.showCamera) this.openCamera('onCardFile', { hint: '' });
+  }
+  componentDidUpdate() {
+    const c = this.state.camera;
+    if (c && !this.state.shot && !c.error && this._streamFacing !== c.facing) this.startCamera();
+    if (!c && this._stream) this.stopCamera();
+  }
   componentWillUnmount() { this.stopCamera(); }
+
+  // ---- Camera ----
+  openCamera(handler, extra) { this.setState({ camera: { handler, ...CAMERAS[handler], ...extra } }); }
   async startCamera() {
     const c = this.state.camera; this.stopCamera(); this._streamFacing = c.facing;
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('no camera');
-      const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: c.facing, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
-      this._stream = s; const v = this.videoRef.current; if (v) { v.srcObject = s; v.muted = true; v.setAttribute('playsinline', ''); v.play().catch(() => {}); }
+      const video = { facingMode: c.facing, width: { ideal: 1920 }, height: { ideal: 1080 } };
+      const s = await navigator.mediaDevices.getUserMedia({ video, audio: false });
+      this._stream = s;
+      const v = this.videoRef.current;
+      if (v) { v.srcObject = s; v.muted = true; v.setAttribute('playsinline', ''); v.play().catch(() => {}); }
     } catch (e) { this._streamFacing = null; this.setState({ camera: { ...this.state.camera, error: true } }); }
   }
-  openBackCamera() { this.setState({ camera: { handler: 'onCardBack', facing: 'environment', aspect: '85/54', radius: 12, title: 'Back of the card', hint: 'Now turn the card over and fit the back in the frame.' } }); }
-  stopCamera() { if (this._stream) { this._stream.getTracks().forEach(t => t.stop()); this._stream = null; } this._streamFacing = null; }
+  stopCamera() {
+    if (this._stream) { this._stream.getTracks().forEach(t => t.stop()); this._stream = null; }
+    this._streamFacing = null;
+  }
+  // Crops the frame to the guide on screen, so the photo is what was inside the corners.
   takeShot() {
     const v = this.videoRef.current, g = this.guideRef.current; if (!v || !v.videoWidth) return;
-    const vw = v.videoWidth, vh = v.videoHeight, r = v.getBoundingClientRect(); const scale = Math.max(r.width / vw, r.height / vh);
-    const dispW = vw * scale, dispH = vh * scale, offX = (r.width - dispW) / 2, offY = (r.height - dispH) / 2;
+    const vw = v.videoWidth, vh = v.videoHeight, r = v.getBoundingClientRect();
+    const scale = Math.max(r.width / vw, r.height / vh);
+    const offX = (r.width - vw * scale) / 2, offY = (r.height - vh * scale) / 2;
     let sx = 0, sy = 0, sw = vw, sh = vh;
-    if (g) { const gr = g.getBoundingClientRect(); sx = Math.max(0, (gr.left - r.left - offX) / scale); sy = Math.max(0, (gr.top - r.top - offY) / scale); sw = Math.min(vw - sx, gr.width / scale); sh = Math.min(vh - sy, gr.height / scale); }
-    const mirror = this.state.camera.facing === 'user'; const c = document.createElement('canvas'); c.width = Math.round(sw); c.height = Math.round(sh); const x = c.getContext('2d');
-    if (mirror) { x.translate(c.width, 0); x.scale(-1, 1); }
+    if (g) {
+      const gr = g.getBoundingClientRect();
+      sx = Math.max(0, (gr.left - r.left - offX) / scale); sy = Math.max(0, (gr.top - r.top - offY) / scale);
+      sw = Math.min(vw - sx, gr.width / scale); sh = Math.min(vh - sy, gr.height / scale);
+    }
+    const c = document.createElement('canvas'); c.width = Math.round(sw); c.height = Math.round(sh);
+    const x = c.getContext('2d');
+    if (this.state.camera.facing === 'user') { x.translate(c.width, 0); x.scale(-1, 1); }
     x.drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
     this.setState({ shot: c.toDataURL('image/jpeg', .9) }); this.stopCamera();
   }
-  componentDidMount() {
-    try {
-      let raw = localStorage.getItem(KEY);
-      if (raw && !TOKEN && (JSON.parse(raw).step || 0) >= 9) { localStorage.removeItem(KEY); raw = null; }
-      if (raw) { const s = JSON.parse(raw); if (s.d) { s.d.signed = false; s.d = { ...EMPTY, ...s.d }; if (!s.d.trade && Array.isArray(s.d.trades)) s.d.trade = (s.d.trades.find(x => x && x.trim()) || ''); delete s.d.trades; delete s.d.county; delete s.d.addrMode; } if (s.d && s.d.fullName && !s.d.firstName) { const p = s.d.fullName.trim().split(/\s+/); s.d.firstName = p.shift() || ''; s.d.surname = p.join(' '); } if (s.d && !Array.isArray(s.d.trades)) s.d.trades = (s.d.trade || '').split(',').map(x => x.trim()).filter(Boolean); if (s.d && !s.d.trades.length) s.d.trades = ['']; if (s.d && s.d.licExpiry && !/^\d{4}-\d{2}-\d{2}$/.test(s.d.licExpiry)) s.d.licExpiry = ''; if (s.d && s.d.rtw === 'none') s.d.rtw = ''; if (s.d) ['selfie', 'rtwPhoto', 'licFront', 'licBack'].forEach(k => { if (s.d[k] === 'kept') s.d[k] = ''; }); this.setState({ step: s.step || 0, d: { ...EMPTY, ...s.d }, cards: (s.cards || []).filter(c => c.src && c.src !== 'kept' && c.src !== '').map(c => ({ ...c, reading: false, back: c.back === 'kept' ? '' : (c.back || '') })), resumed: (s.step || 0) > 0 && s.step < 9 }); return; }
-    } catch (e) {}
-    const st = this.props.startStep; if (st != null && st > 0) this.setState({ step: Number(st) });
-    if (TOKEN) this.loadInvite();
-    if (this.props.showCamera) this.setState({ camera: { handler: 'onCardFile', facing: 'environment', aspect: '85/54', radius: 12, title: 'Front of the card' } });
+  // Hands a photo to the handler that opened the camera, and closes it.
+  deliver(src) {
+    const fn = this.state.camera && this.renderVals()[this.state.camera.handler];
+    this.stopCamera(); this.setState({ camera: null, shot: null }, () => fn && fn(src));
   }
+
+  // ---- Saving ----
   // Photos are kept as 'kept' in the saved copy: the file is in Storage and comes back as a signed URL.
   stripped() {
     const { step, d, cards, files } = this.state;
@@ -811,192 +944,348 @@ class Component extends DCLogic {
   save(extra) {
     this.setState(extra, () => {
       // A sent preview isn't kept, so the next open starts fresh. Real invites are closed by the server.
-      try { if (!TOKEN && this.state.step >= 9) localStorage.removeItem(KEY); else localStorage.setItem(KEY, JSON.stringify(this.stripped())); } catch (e) {}
-      if (!TOKEN || this.state.step >= 9) return;
+      try {
+        if (!TOKEN && this.state.step >= SENT) localStorage.removeItem(KEY);
+        else localStorage.setItem(KEY, JSON.stringify(this.stripped()));
+      } catch (e) {}
+      if (!TOKEN || this.state.step >= SENT) return;
       clearTimeout(this._draftT);
       this._draftT = setTimeout(() => { api.call('save-draft', { draft: this.stripped() }).catch(() => {}); }, 800);
     });
   }
+  setD(k, v) { this.save({ d: { ...this.state.d, [k]: v } }); }
+  goStep(step) { this._ink = 0; this.save({ step, d: { ...this.state.d, signed: false } }); window.scrollTo(0, 0); }
   async loadInvite() {
     let r;
-    try { r = await api.call('get-invite', {}); }
-    catch (e) { this.setState({ ready: true, closed: e.message.startsWith('No signal') ? 'offline' : 'error', notice: e.message }); return; }
+    try { r = await api.call('get-invite', {}); } catch (e) {
+      this.setState({ ready: true, closed: e.message.startsWith('No signal') ? 'offline' : 'error', notice: e.message }); return;
+    }
     if (r.closed) { this.setState({ ready: true, closed: r.closed }); return; }
-    const inv = { subcontractor: r.company, contact: r.contact, first: r.firstName, start: r.startsOn ? dateText(r.startsOn) : 'your first day', expiresAt: r.expiresAt };
-    const patch = { inv, ready: true };
+    const inv = { subcontractor: r.company, contact: r.contact, first: r.firstName,
+      start: r.startsOn ? dateText(r.startsOn) : 'your first day', expiresAt: r.expiresAt };
     // Server draft wins when this phone has nothing; otherwise keep the local copy but
     // refresh the photo links from the server.
-    const dr = r.draft, urls = r.urls || {};
-    const haveLocal = !!localStorage.getItem(KEY);
-    const files = { ...(dr && dr.files || {}), ...this.state.files };
-    patch.files = files;
-    const d = { ...EMPTY, ...(haveLocal ? this.state.d : (dr && dr.d) || {}) }; d.signed = false;
-    Object.keys(SLOT).forEach(k => { const p = files[SLOT[k]]; if (!isImg(d[k])) d[k] = p && urls[p] ? urls[p] : ''; });
-    patch.d = d;
-    let cards = haveLocal ? this.state.cards : (dr && dr.cards) || [];
-    cards = cards.filter(c => !c.reading).map(c => { const f = files['cards/' + c.id + '/front'], b = files['cards/' + c.id + '/back']; return { ...c, src: isImg(c.src) ? c.src : (f && urls[f]) || '', back: isImg(c.back) ? c.back : (b && urls[b]) || '' }; });
-    patch.cards = cards;
-    if (!haveLocal && dr && dr.step > 0) { patch.step = Math.min(dr.step, 8); patch.resumed = true; }
+    const dr = r.draft || {}, urls = r.urls || {}, haveLocal = !!localStorage.getItem(KEY);
+    const files = { ...(dr.files || {}), ...this.state.files };
+    const link = (cur, slot) => isImg(cur) ? cur : (files[slot] && urls[files[slot]]) || '';
+    const d = { ...EMPTY, ...(haveLocal ? this.state.d : dr.d || {}), signed: false };
+    Object.keys(SLOT).forEach(k => { d[k] = link(d[k], SLOT[k]); });
+    const cards = (haveLocal ? this.state.cards : dr.cards || []).filter(c => !c.reading)
+      .map(c => ({ ...c, src: link(c.src, cardSlot(c.id, 'front')), back: link(c.back, cardSlot(c.id, 'back')) }));
+    const patch = { inv, ready: true, files, d, cards };
+    if (!haveLocal && dr.step > 0) { patch.step = Math.min(dr.step, TOTAL); patch.resumed = true; }
     this.setState(patch);
+  }
+
+  // ---- Photos ----
+  readFile(e, cb) {
+    if (typeof e === 'string') { cb(e); return; }
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const r = new FileReader(); r.onload = () => cb(r.result); r.readAsDataURL(f); e.target.value = '';
   }
   // Shows the photo at once, uploads it behind, and takes it back if the upload fails.
   putPhoto(kind, src, apply, undo) {
     apply(src);
     if (!TOKEN) return Promise.resolve();
-    return api.upload(kind, src).then(path => { this.save({ files: { ...this.state.files, [kind]: path }, notice: '' }); }, e => { undo(); this.setState({ notice: e.message === 'closed' ? 'This link has closed.' : e.message }); });
+    return api.upload(kind, src).then(
+      path => { this.save({ files: { ...this.state.files, [kind]: path }, notice: '' }); },
+      e => { undo(); this.setState({ notice: failText(e) }); });
+  }
+  // A photo field on the form: read the file, show it, upload it.
+  onPhoto(k, after) {
+    return e => this.readFile(e, src => { this.putPhoto(SLOT[k], src, v => this.setD(k, v), () => this.setD(k, '')); after && after(); });
   }
   dropFile(kind) { const files = { ...this.state.files }; delete files[kind]; this.save({ files }); }
+  view(src, title, aspect) { return () => src && this.setState({ preview: { src, title, aspect } }); }
+  addCard(src, contact) {
+    const id = 'c' + Date.now(), n = this.state.cards.length;
+    this.save({ cards: [...this.state.cards, { id, src, reading: true }], addingCard: false });
+    const read = TOKEN ? { name: 'Card ' + (n + 1), detail: contact + ' will check the number and date', tone: 'info', word: 'to check' }
+      : READS[n % READS.length];
+    const done = () => this.save({ cards: this.state.cards.map(c => c.id === id ? { ...c, reading: false, ...read } : c) });
+    const backNext = () => setTimeout(() => this.openCamera('onCardBack'), 50);
+    if (!TOKEN) { setTimeout(done, 1400); backNext(); return; }
+    api.upload(cardSlot(id, 'front'), src).then(path => {
+      this.save({ files: { ...this.state.files, [cardSlot(id, 'front')]: path }, notice: '' }); done(); backNext();
+    }, e => this.save({ cards: this.state.cards.filter(c => c.id !== id), notice: failText(e) }));
+  }
+  addCardBack(src) {
+    const p = this.state.cards.find(c => !c.back); if (!p) return;
+    const setBack = v => this.save({ cards: this.state.cards.map(c => c.id === p.id ? { ...c, back: v } : c) });
+    this.putPhoto(cardSlot(p.id, 'back'), src, setBack, () => setBack(''));
+  }
+
+  // ---- Signature ----
+  sigCtx() {
+    const c = this.sigRef.current; if (!c) return null;
+    if (!c._sized) {
+      const r = c.getBoundingClientRect(); c.width = r.width * 2; c.height = r.height * 2;
+      const x = c.getContext('2d'); x.scale(2, 2);
+      Object.assign(x, { lineWidth: 2, lineCap: 'round', lineJoin: 'round', strokeStyle: '#000' });
+      c._sized = true;
+    }
+    return c.getContext('2d');
+  }
+  pt(e) { const r = this.sigRef.current.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
   async submit() {
-    const { d, cards, files } = this.state;
+    const { cards, files } = this.state;
     this.setState({ sending: true, notice: '' });
     try {
       const c = this.sigRef.current; if (!c) throw new Error('Sign above to send.');
-      const png = document.createElement('canvas'); png.width = c.width; png.height = c.height; const x = png.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, png.width, png.height); x.drawImage(c, 0, 0);
-      const sig = await api.upload('signature', png.toDataURL('image/png'));
-      const allFiles = { ...files, signature: sig };
-      const sd = this.stripped().d;
-      const r = await api.call('submit-intake', { d: sd, files: allFiles, cards: cards.map(k => ({ id: k.id, name: k.name, front: files['cards/' + k.id + '/front'] || null, back: files['cards/' + k.id + '/back'] || null })) });
+      const png = document.createElement('canvas'); png.width = c.width; png.height = c.height;
+      const x = png.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, png.width, png.height); x.drawImage(c, 0, 0);
+      const signature = await api.upload('signature', png.toDataURL('image/png'));
+      const sent = cards.map(k => ({ id: k.id, name: k.name, front: files[cardSlot(k.id, 'front')] || null, back: files[cardSlot(k.id, 'back')] || null }));
+      const r = await api.call('submit-intake', { d: this.stripped().d, files: { ...files, signature }, cards: sent });
       if (r.closed) throw new Error('This link has already closed.');
       try { localStorage.removeItem(KEY); } catch (e) {}
       this._sentAt = new Date(r.sentAt || Date.now());
-      this.setState({ sending: false, step: 9 }); window.scrollTo(0, 0);
+      this.setState({ sending: false, step: SENT }); window.scrollTo(0, 0);
     } catch (e) { this.setState({ sending: false, notice: e.message }); }
   }
-  setD(k, v) { this.save({ d: { ...this.state.d, [k]: v } }); }
-  goStep(step) { this._ink = 0; this.save({ step, d: { ...this.state.d, signed: false } }); window.scrollTo(0, 0); }
-  readFile(e, cb) { if (typeof e === 'string') { cb(e); return; } const f = e.target.files && e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => cb(r.result); r.readAsDataURL(f); e.target.value = ''; }
-  sigCtx() { const c = this.sigRef.current; if (!c) return null; if (!c._sized) { const r = c.getBoundingClientRect(); c.width = r.width * 2; c.height = r.height * 2; const x = c.getContext('2d'); x.scale(2, 2); x.lineWidth = 2; x.lineCap = 'round'; x.lineJoin = 'round'; x.strokeStyle = '#000'; c._sized = true; } return c.getContext('2d'); }
-  pt(e) { const r = this.sigRef.current.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+
+  // ---- Date picker: typed dd/mm/yyyy or a month grid ----
+  calendar(key, iso, setIso, defY) {
+    if (!ISO_RE.test(iso || '')) iso = '';
+    const st = this.state.cal[key] || {}, open = !!st.open;
+    const Y = Number.isFinite(st.y) ? st.y : (iso ? +iso.slice(0, 4) : defY);
+    const M = Number.isFinite(st.m) ? st.m : (iso ? +iso.slice(5, 7) - 1 : 0);
+    const setCal = patch => this.setState({ cal: { ...this.state.cal, [key]: { ...(this.state.cal[key] || {}), ...patch } } });
+    const shown = { y: iso ? +iso.slice(0, 4) : Y, m: iso ? +iso.slice(5, 7) - 1 : M };
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const lead = (new Date(Y, M, 1).getDay() + 6) % 7, dim = new Date(Y, M + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < 42; i++) {
+      const dt = new Date(Y, M, i - lead + 1), y = dt.getFullYear(), m = dt.getMonth(), n = dt.getDate();
+      const cIso = y + '-' + pad(m + 1) + '-' + pad(n), sel = cIso === iso, inMonth = i >= lead && i - lead < dim;
+      cells.push({ n, border: cIso === todayIso && !sel ? 'var(--line)' : 'transparent', bg: sel ? 'var(--ink)' : 'transparent',
+        color: sel ? 'var(--bg)' : 'var(--ink)', opacity: inMonth ? 1 : .35, pick: () => { setIso(cIso); setCal({ typed: null, y, m }); } });
+    }
+    if (cells.slice(35).every(c => c.opacity < 1)) cells.length = 35;
+    const onTyped = e => {
+      const v = e.target.value, mm = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (mm) {
+        const n = mm[3] + '-' + pad(mm[2]) + '-' + pad(mm[1]), dt = new Date(n);
+        if (!isNaN(dt) && dt.getDate() === +mm[1]) { setIso(n); setCal({ typed: null, y: +mm[3], m: +mm[2] - 1 }); return; }
+      }
+      setCal({ typed: v });
+    };
+    return {
+      typed: st.typed != null ? st.typed : (iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4) : ''),
+      open, closed: !open, label: open ? 'Hide calendar' : 'Pick a date', onTyped,
+      toggle: () => setCal(open ? { open: false } : { open: true, ...shown }),
+      openCal: () => setCal({ open: true, ...shown }), done: () => setCal({ open: false }),
+      year: String(Y), month: MONTHS[M], days: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'], cells,
+      prevYear: () => setCal({ y: Y - 1 }), nextYear: () => setCal({ y: Y + 1 }),
+      prevMonth: () => setCal(M === 0 ? { m: 11, y: Y - 1 } : { m: M - 1 }),
+      nextMonth: () => setCal(M === 11 ? { m: 0, y: Y + 1 } : { m: M + 1 }),
+      clear: () => { setIso(''); setCal({ typed: null }); }
+    };
+  }
+
+  // ---- What the page binds to ----
   renderVals() {
-    const { step, d, cards } = this.state;
-    const inv = this.state.inv || {};
-    const sub = inv.subcontractor || this.props.subcontractor || 'Woodleaze', contact = inv.contact || this.props.contact || 'Ion', first = inv.first || this.props.firstName || 'Tom', start = inv.start || this.props.startDate || 'Monday 5 October';
-    const set = {}; Object.keys(EMPTY).forEach(k => { set[k] = e => { const v = e && e.target ? e.target.value : e; this.setD(k, typeof v === 'string' ? cap(v) : v); }; });
-    set.sortCode = e => { const v = e && e.target ? e.target.value : e || ''; const dg = v.replace(/\D/g, '').slice(0, 6); const del = v.length < (d.sortCode || '').length; let out = (dg.match(/.{1,2}/g) || []).join('-'); if (!del && dg.length % 2 === 0 && dg.length > 0 && dg.length < 6) out += '-'; this.setD('sortCode', out); };
-    set.ni = e => { const v = e && e.target ? e.target.value : e || ''; const del = v.length < (d.ni || '').length; let c = ''; for (const ch of v.toUpperCase().replace(/[^A-Z0-9]/g, '')) { const i = c.length; if (i < 2 ? /[A-Z]/.test(ch) : i < 8 ? /\d/.test(ch) : i === 8 && /[A-D]/.test(ch)) c += ch; if (c.length === 9) break; } const parts = [c.slice(0, 2), c.slice(2, 4), c.slice(4, 6), c.slice(6, 8), c.slice(8)].filter(Boolean); let out = parts.join(' '); if (!del && [2, 4, 6, 8].includes(c.length)) out += ' '; this.setD('ni', out); };
-    set.account = e => { const v = e && e.target ? e.target.value : e || ''; this.setD('account', v.replace(/\D/g, '').slice(0, 8)); };
-    set.postcode = e => this.setD('postcode', fmtPc(e && e.target ? e.target.value : e || ''));
-    const addrOk = PC_RE.test((d.postcode || '').replace(/\s/g, '')) && (d.addrLine || '').trim().length > 2 && (d.addrTown || '').trim().length > 1;
+    const { step, d, cards, camera, shot, preview, closed, sending } = this.state;
+    const inv = this.state.inv || {}, p = this.props;
+    const sub = inv.subcontractor || p.subcontractor || 'Woodleaze', contact = inv.contact || p.contact || 'Ion';
+    const first = inv.first || p.firstName || 'Tom', start = inv.start || p.startDate || 'Monday 5 October';
+    const rtw = RTW.find(r => r.id === d.rtw), rtwTitle = rtw && rtw.photo ? cap(rtw.photo) : 'Document';
     const addrFull = [d.addrLine, d.addrLine2, d.addrTown, d.postcode].map(x => (x || '').trim()).filter(Boolean).join(', ');
     if (addrFull !== d.address) setTimeout(() => this.setD('address', addrFull));
-    const s = {}; for (let i = 0; i <= 9; i++) s['s' + i] = this.state.ready && !this.state.closed && step === i;
-    const rtw = RTW.find(r => r.id === d.rtw);
-    const tradeList = [(d.trade || '').trim()].filter(Boolean); const tradeText = tradeList.join(', ') || 'Not given'; const fullName = [d.firstName, d.surname].map(x => x.trim()).filter(Boolean).join(' ');
-    const dobText = d.dob ? new Date(d.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not given';
-    const or = (v) => v || 'Not given';
-    const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const pad = n => String(n).padStart(2, '0');
-    const todayIso = new Date().toISOString().slice(0, 10);
-    const calendar = (key, iso, setIso, defY) => {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) iso = '';
-      const st = this.state.cal[key] || {}; const open = !!st.open; const typedSt = st.typed;
-      const Y = Number.isFinite(st.y) ? st.y : (iso ? +iso.slice(0, 4) : defY), M = Number.isFinite(st.m) ? st.m : (iso ? +iso.slice(5, 7) - 1 : 0);
-      const setCal = patch => this.setState({ cal: { ...this.state.cal, [key]: { ...(this.state.cal[key] || {}), ...patch } } });
-      const commit = (v) => { setIso(v); setCal({ typed: null }); };
-      const typed = typedSt != null ? typedSt : (iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4) : '');
-      const lead = (new Date(Y, M, 1).getDay() + 6) % 7; const dim = new Date(Y, M + 1, 0).getDate(); const dimPrev = new Date(Y, M, 0).getDate();
-      const cells = []; for (let i = 0; i < 42; i++) { const off = i - lead; let y = Y, m = M, n; if (off < 0) { n = dimPrev + off + 1; m = M - 1; if (m < 0) { m = 11; y--; } } else if (off >= dim) { n = off - dim + 1; m = M + 1; if (m > 11) { m = 0; y++; } } else n = off + 1; const cIso = y + '-' + pad(m + 1) + '-' + pad(n); const sel = cIso === iso; const inMonth = off >= 0 && off < dim; cells.push({ n, border: cIso === todayIso && !sel ? 'var(--line)' : 'transparent', bg: sel ? 'var(--ink)' : 'transparent', color: sel ? 'var(--bg)' : 'var(--ink)', opacity: inMonth ? 1 : .35, pick: () => { setIso(cIso); setCal({ typed: null, y, m }); } }); }
-      if (cells.slice(35).every(c => c.opacity < 1)) cells.length = 35;
-      return { typed, open, closed: !open, label: open ? 'Hide calendar' : 'Pick a date',
-        onTyped: e => { const v = e.target.value; const mm = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if (mm) { const n = mm[3] + '-' + pad(mm[2]) + '-' + pad(mm[1]); const dt = new Date(n); if (!isNaN(dt) && dt.getDate() === +mm[1]) { setIso(n); setCal({ typed: null, y: +mm[3], m: +mm[2] - 1 }); return; } } setCal({ typed: v }); },
-        toggle: () => open ? setCal({ open: false }) : setCal({ open: true, y: iso ? +iso.slice(0, 4) : Y, m: iso ? +iso.slice(5, 7) - 1 : M }),
-        openCal: () => setCal({ open: true, y: iso ? +iso.slice(0, 4) : Y, m: iso ? +iso.slice(5, 7) - 1 : M }), done: () => setCal({ open: false }),
-        year: String(Y), month: MONTHS[M], days: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'], cells,
-        prevYear: () => setCal({ y: Y - 1 }), nextYear: () => setCal({ y: Y + 1 }),
-        prevMonth: () => setCal(M === 0 ? { m: 11, y: Y - 1 } : { m: M - 1 }), nextMonth: () => setCal(M === 11 ? { m: 0, y: Y + 1 } : { m: M + 1 }),
-        clear: () => commit('') };
+    const x = {
+      rtw, reading: cards.some(c => c.reading), pendingBack: cards.some(c => !c.back && !c.reading),
+      licHalf: !!d.licFront !== !!d.licBack,
+      addrOk: PC_RE.test((d.postcode || '').replace(/\s/g, '')) && (d.addrLine || '').trim().length > 2 && (d.addrTown || '').trim().length > 1
     };
-    const dobCal = calendar('dob', d.dob, v => this.setD('dob', v), 1990);
-    const expCal = calendar('exp', d.licExpiry, v => this.setD('licExpiry', v), new Date().getFullYear());
-    const reading = cards.some(c => c.reading); const pendingBack = cards.some(c => !c.back && !c.reading);
-    const licHalf = (!!d.licFront) !== (!!d.licBack);
-    const canNext = step === 1 ? d.firstName.trim().length > 0 && d.surname.trim().length > 0 && !!d.dob && !!d.gender && tradeList.length > 0 && addrOk : step === 3 ? !licHalf && (!d.licFront || (d.licPoints !== '' && d.licNumber.trim().length >= 16 && /^\d{4}-\d{2}-\d{2}$/.test(d.licExpiry))) : step === 4 ? !reading && !pendingBack : step === 5 ? !!d.rtw && (!rtw || !rtw.photo || !!d.rtwPhoto) && (d.rtw !== 'code' || d.shareCode.trim().length >= 9) : step === 6 ? /^[A-Z]{2}\d{6}[A-D]?$/i.test(d.ni.replace(/\s/g, '')) && d.accountName.trim().length > 1 && d.sortCode.replace(/\D/g, '').length === 6 && d.account.replace(/\D/g, '').length === 8 : step === 7 ? d.ecName.trim().length > 1 && d.ecPhone.replace(/\D/g, '').length >= 10 : step === 8 ? d.signed : true;
-    const total = 8;
-    const labels = ['', 'About you', 'Your photo', 'Driving licence', 'Your cards', 'Right to work', 'Getting paid', 'Emergency contact', 'Check and sign'];
+    const canNext = !READY[step] || !!READY[step](d, x);
+    const s = {}; for (let i = 0; i <= SENT; i++) s['s' + i] = this.state.ready && !closed && step === i;
     return {
-      subcontractor: sub, contact, logoSrc: LOGOS[sub] || '', hasLogo: !!LOGOS[sub], noLogo: !LOGOS[sub], ...s,
+      ...s, ...this.headerVals(sub, contact, first, inv),
+      d, set: this.setters(d), dobCal: this.calendar('dob', d.dob, v => this.setD('dob', v), 1990),
+      expCal: this.calendar('exp', d.licExpiry, v => this.setD('licExpiry', v), new Date().getFullYear()),
+      genders: GENDERS.map(g => { const on = d.gender === g; return { name: g, on, pick: () => this.setD('gender', g),
+        border: on ? 'var(--ink)' : 'var(--line)', bg: on ? 'var(--ink)' : 'transparent', color: on ? 'var(--bg)' : 'var(--ink)' }; }),
+      ...this.cameraVals(camera, shot, rtwTitle),
+      ...this.photoVals(d, rtwTitle),
+      ...this.cardVals(cards, x.pendingBack, contact),
+      ...this.licenceVals(d),
+      ...this.rtwVals(d, rtw),
+      previewOpen: !!preview, previewAspect: preview && preview.aspect || '85/54',
+      previewMax: preview && preview.aspect === '3/4' ? '360px' : '640px', previewBg: bg(preview && preview.src),
+      previewTitle: preview ? preview.title : '', stopClick: e => e.stopPropagation(), closePreview: () => this.setState({ preview: null }),
+      review: this.review(d, cards, rtw, contact),
+      ...this.signVals(d),
+      doneBody: contact + ' checks your cards and approves you before ' + start
+        + '. You\'ll get a text when that\'s done, and another with where to be and what time.',
+      doneRows: this.doneRows(cards, start),
+      showBar: this.state.ready && !closed && step < SENT, showBack: step > 0 && !sending,
+      nextLabel: this.nextLabel(step, d, cards, contact), nextDisabled: !canNext || sending,
+      next: () => { if (!canNext || sending) return; if (step === TOTAL && TOKEN) { this.submit(); return; } this.goStep(step + 1); },
+      back: () => this.goStep(step - 1), backLabel: step === 1 ? 'Back' : 'Back to ' + (STEPS[step - 1] || '').toLowerCase(),
+      wideProps: { style: { width: '100%', height: 52, fontSize: 16 } }
+    };
+  }
+  headerVals(sub, contact, first, inv) {
+    const { step, closed, notice } = this.state;
+    const CLOSED = {
+      used: ['This link has already been used.', 'What you sent is with ' + contact + '. If something needs changing, ask them.'],
+      expired: ['This link has run out.'],
+      offline: ['No signal.', 'Try again when you\'re back online.'],
+      error: ['Something went wrong.', notice + ' Try again in a minute.']
+    };
+    const [closedTitle, closedBody] = CLOSED[closed] || [];
+    return {
+      subcontractor: sub, contact, logoSrc: LOGOS[sub] || '', hasLogo: !!LOGOS[sub], noLogo: !LOGOS[sub],
       welcomeTitle: 'Hi ' + first + ', welcome to ' + sub + '.',
-      stepLabel: step === 0 ? 'About 2 minutes' : step === 9 ? 'Done' : step + ' of ' + total,
-      progressDisplay: step > 0 && step < 9 ? 'block' : 'none', progressWidth: Math.round((step / total) * 100) + '%',
+      stepLabel: step === 0 ? 'About 2 minutes' : step === SENT ? 'Done' : step + ' of ' + TOTAL,
+      progressDisplay: step > 0 && step < SENT ? 'block' : 'none', progressWidth: Math.round((step / TOTAL) * 100) + '%',
       expiry: dateText(inv.expiresAt || new Date(Date.now() + 7 * 86400000).toISOString()),
-      closed: !!this.state.closed, notice: this.state.notice,
-      closedTitle: this.state.closed === 'used' ? 'This link has already been used.' : this.state.closed === 'expired' ? 'This link has run out.' : this.state.closed === 'offline' ? 'No signal.' : this.state.closed === 'error' ? 'Something went wrong.' : 'This link doesn\'t work.',
-      closedBody: this.state.closed === 'used' ? 'What you sent is with ' + contact + '. If something needs changing, ask them.' : this.state.closed === 'offline' ? 'Try again when you\'re back online.' : this.state.closed === 'error' ? this.state.notice + ' Try again in a minute.' : 'Ask ' + (inv.contact || 'the person who invited you') + ' to send a new one.',
-      resumed: this.state.resumed && step === 0,
-      outline: [ { name: 'About you', need: 'Name, trade, address' }, { name: 'Your photo', need: 'For the site register' }, { name: 'Driving licence', need: 'If you have one' }, { name: 'Your cards', need: 'Both sides' }, { name: 'Right to work', need: 'Passport or share code' }, { name: 'Getting paid', need: 'NI and bank' }, { name: 'Emergency contact', need: 'One person' } ],
-      d, set,
-      dobCal, expCal,
-      cam: { onCardFile: () => this.setState({ camera: { handler: 'onCardFile', facing: 'environment', aspect: '85/54', radius: 12, title: 'Front of the card', hint: 'Fit the front of the card in the frame.' } }),
-        onCardBack: () => this.openBackCamera(),
-        onLicFront: () => this.setState({ camera: { handler: 'onLicFront', facing: 'environment', aspect: '85/54', radius: 12, title: 'Driving licence · front', hint: 'Fit the front of the licence in the frame.' } }),
-        onLicBack: () => this.setState({ camera: { handler: 'onLicBack', facing: 'environment', aspect: '85/54', radius: 12, title: 'Driving licence · back', hint: 'Now the back of the licence.' } }),
-        onRtwFile: () => this.setState({ camera: { handler: 'onRtwFile', facing: 'environment', aspect: '125/88', radius: 8, title: rtw && rtw.photo ? rtw.photo.charAt(0).toUpperCase() + rtw.photo.slice(1) : 'Document', aspect: '125/88' } }),
-        onSelfieFile: () => this.setState({ camera: { handler: 'onSelfieFile', facing: 'user', aspect: '3/4', radius: 20, title: 'Your photo', hint: 'Head and shoulders, no hat or glasses.' } }) },
-      camOpen: !!this.state.camera, camLive: !!this.state.camera && !this.state.shot && !(this.state.camera && this.state.camera.error), camShot: !!this.state.shot, camError: !!(this.state.camera && this.state.camera.error && !this.state.shot),
-      camTitle: this.state.camera ? this.state.camera.title : '', camHint: this.state.camera ? (this.state.camera.hint || '') : '', camAspect: this.state.camera ? this.state.camera.aspect : '85/54', camGuideRadius: this.state.camera ? this.state.camera.radius + 'px' : '12px',
-      camMirror: this.state.camera && this.state.camera.facing === 'user' ? 'scaleX(-1)' : 'none', camShotBg: bg(this.state.shot),
+      closed: !!closed, notice,
+      closedTitle: closedTitle || 'This link doesn\'t work.',
+      closedBody: closedBody || 'Ask ' + (inv.contact || 'the person who invited you') + ' to send a new one.',
+      resumed: this.state.resumed && step === 0, outline: OUTLINE
+    };
+  }
+  // One setter per field; a few format as you type.
+  setters(d) {
+    const set = {};
+    Object.keys(EMPTY).forEach(k => { set[k] = e => { const v = val(e); this.setD(k, typeof v === 'string' ? cap(v) : v); }; });
+    set.sortCode = e => this.setD('sortCode', fmtSortCode(val(e) || '', d.sortCode || ''));
+    set.ni = e => this.setD('ni', fmtNi(val(e) || '', d.ni || ''));
+    set.account = e => this.setD('account', (val(e) || '').replace(/\D/g, '').slice(0, 8));
+    set.postcode = e => this.setD('postcode', fmtPc(val(e) || ''));
+    return set;
+  }
+  cameraVals(camera, shot, rtwTitle) {
+    const open = h => () => this.openCamera(h);
+    const err = !!(camera && camera.error);
+    return {
+      cam: { onCardFile: open('onCardFile'), onCardBack: open('onCardBack'), onLicFront: open('onLicFront'), onLicBack: open('onLicBack'),
+        onRtwFile: () => this.openCamera('onRtwFile', { title: rtwTitle }), onSelfieFile: open('onSelfieFile') },
+      camOpen: !!camera, camLive: !!camera && !shot && !err, camShot: !!shot, camError: err && !shot,
+      camTitle: camera ? camera.title : '', camHint: camera ? (camera.hint || '') : '',
+      camAspect: camera ? camera.aspect : '85/54', camGuideRadius: camera ? camera.radius + 'px' : '12px',
+      camMirror: camera && camera.facing === 'user' ? 'scaleX(-1)' : 'none', camShotBg: bg(shot),
       videoRef: this.videoRef, guideRef: this.guideRef,
       camClose: () => { this.stopCamera(); this.setState({ camera: null, shot: null }); },
-      camFlip: () => this.setState({ camera: { ...this.state.camera, facing: this.state.camera.facing === 'user' ? 'environment' : 'user', error: false } }),
+      camFlip: () => this.setState({ camera: { ...camera, facing: camera.facing === 'user' ? 'environment' : 'user', error: false } }),
       camShutter: () => this.takeShot(), camRetake: () => this.setState({ shot: null }),
-      camUse: () => { const { camera, shot } = this.state; if (!camera || !shot) return; const fn = this.renderVals()[camera.handler]; this.setState({ camera: null, shot: null }, () => fn && fn(shot)); },
-      camUpload: e => { const { camera } = this.state; const fn = camera && this.renderVals()[camera.handler]; this.readFile(e, src => { this.stopCamera(); this.setState({ camera: null, shot: null }, () => fn && fn(src)); }); },
-      noPendingBack: !pendingBack,
+      camUse: () => { if (camera && shot) this.deliver(shot); },
+      camUpload: e => this.readFile(e, src => this.deliver(src))
+    };
+  }
+  photoVals(d, rtwTitle) {
+    return {
+      selfieBg: bg(d.selfie), hasSelfie: !!d.selfie, noSelfie: !d.selfie, onSelfieFile: this.onPhoto('selfie'),
+      viewSelfie: this.view(d.selfie, 'Your photo', '3/4'),
+      rtwBg: bg(d.rtwPhoto), hasRtwPhoto: !!d.rtwPhoto, noRtwPhoto: !d.rtwPhoto, onRtwFile: this.onPhoto('rtwPhoto'),
+      viewRtw: this.view(d.rtwPhoto, rtwTitle)
+    };
+  }
+  cardVals(cards, pendingBack, contact) {
+    const view = (c, side) => this.view(side === 'front' ? c.src : c.back, (c.name || 'Card') + ' · ' + side, '85/54');
+    const remove = c => () => {
+      this.dropFile(cardSlot(c.id, 'front')); this.dropFile(cardSlot(c.id, 'back'));
+      this.save({ cards: this.state.cards.filter(x => x.id !== c.id) });
+    };
+    return {
       showAddRow: !pendingBack && cards.length > 0 && !this.state.addingCard,
       showAddOptions: !pendingBack && (cards.length === 0 || !!this.state.addingCard),
       startAddCard: () => this.setState({ addingCard: true }),
-      cards: cards.map(c => { const needsBack = !c.back && !c.reading; return { ...c, needsBack, complete: !needsBack, shootBack: () => this.openBackCamera(), bg: bg(c.src), backBg: bg(c.back), backBorder: c.back ? 'transparent' : 'var(--dash)', name: c.reading ? 'Saving the card' : c.name, detail: c.reading ? 'Uploading the photo' : needsBack ? 'Front done. Back still needed.' : c.detail, tone: c.reading ? 'info' : c.tone, word: c.reading ? 'saving' : c.word, remove: () => { this.dropFile('cards/' + c.id + '/front'); this.dropFile('cards/' + c.id + '/back'); this.save({ cards: this.state.cards.filter(x => x.id !== c.id) }); }, viewFront: () => c.src && this.setState({ preview: { src: c.src, title: (c.name || 'Card') + ' · front', aspect: '85/54' } }), viewBack: () => c.back && this.setState({ preview: { src: c.back, title: (c.name || 'Card') + ' · back', aspect: '85/54' } }) }; }),
       hasCards: cards.length > 0, addCardLabel: cards.length ? 'Photograph the next card' : 'Photograph a card',
       addCardHint: 'Front first, then we\'ll ask for the back.',
-      onCardFile: e => this.readFile(e, src => { const id = 'c' + Date.now(); const n = this.state.cards.length; this.save({ cards: [...this.state.cards, { id, src, reading: true }], addingCard: false });
-        const done = () => this.save({ cards: this.state.cards.map(c => c.id === id ? { ...c, reading: false, ...(TOKEN ? { name: 'Card ' + (n + 1), detail: contact + ' will check the number and date', tone: 'info', word: 'to check' } : READS[n % READS.length]) } : c) });
-        if (TOKEN) api.upload('cards/' + id + '/front', src).then(path => { this.save({ files: { ...this.state.files, ['cards/' + id + '/front']: path }, notice: '' }); done(); setTimeout(() => this.openBackCamera(), 50); }, err => { this.save({ cards: this.state.cards.filter(c => c.id !== id), notice: err.message === 'closed' ? 'This link has closed.' : err.message }); });
-        else { setTimeout(done, 1400); setTimeout(() => this.openBackCamera(), 50); } }),
-      onCardBack: e => this.readFile(e, src => { const p = this.state.cards.find(c => !c.back); if (!p) return; const setBack = v => this.save({ cards: this.state.cards.map(c => c.id === p.id ? { ...c, back: v } : c) }); this.putPhoto('cards/' + p.id + '/back', src, setBack, () => setBack('')); }),
-            
-      genders: GENDERS.map(g => { const on = d.gender === g; return { name: g, on, pick: () => this.setD('gender', g), border: on ? 'var(--ink)' : 'var(--line)', bg: on ? 'var(--ink)' : 'transparent', color: on ? 'var(--bg)' : 'var(--ink)' }; }),
-      rtwOptions: RTW.map(r => { const on = d.rtw === r.id; return { ...r, on, pick: () => this.save({ d: { ...d, rtw: r.id, rtwPhoto: '', shareCode: '' } }), bg: on ? 'var(--bg3)' : 'transparent', dotDisplay: on ? 'block' : 'none' }; }),
-      rtwNeedsPhoto: !!(rtw && rtw.photo), rtwNeedsCode: d.rtw === 'code', hasRtwPhoto: !!d.rtwPhoto, noRtwPhoto: !d.rtwPhoto,
-      rtwPhotoName: rtw && rtw.photo ? rtw.photo : '', rtwPhotoHint: rtw && rtw.hint ? rtw.hint : '',
-      onRtwFile: e => this.readFile(e, src => this.putPhoto(SLOT.rtwPhoto, src, v => this.setD('rtwPhoto', v), () => this.setD('rtwPhoto', ''))), clearRtwPhoto: () => { this.dropFile(SLOT.rtwPhoto); this.setD('rtwPhoto', ''); },
-      viewRtw: () => d.rtwPhoto && this.setState({ preview: { src: d.rtwPhoto, title: rtw && rtw.photo ? rtw.photo.charAt(0).toUpperCase() + rtw.photo.slice(1) : 'Document' } }),
-      hasLicence: !!d.licFront && !!d.licBack,
-      pointsTyped: d.licPoints === '0' ? '' : d.licPoints, onPoints: e => this.setD('licPoints', e.target.value.replace(/\D/g, '').slice(0, 2)),
-      pickNoPoints: () => this.setD('licPoints', d.licPoints === '0' ? '' : '0'), noPointsOn: d.licPoints === '0', noPointsBorder: d.licPoints === '0' ? 'var(--ink)' : 'var(--line)', noPointsBg: d.licPoints === '0' ? 'var(--ink)' : 'transparent', noPointsColor: d.licPoints === '0' ? 'var(--bg)' : 'var(--ink)',
-      hasLicFront: !!d.licFront, noLicFront: !d.licFront, hasLicBack: !!d.licBack, noLicBack: !d.licBack,
-      licFrontBg: bg(d.licFront), licBackBg: bg(d.licBack),
-      onLicFront: e => this.readFile(e, src => { this.putPhoto(SLOT.licFront, src, v => this.setD('licFront', v), () => this.setD('licFront', '')); if (!this.state.d.licBack) setTimeout(() => this.setState({ camera: { handler: 'onLicBack', facing: 'environment', aspect: '85/54', radius: 12, title: 'Driving licence · back', hint: 'Now turn the licence over and fit the back in the frame.' } }), 50); }), onLicUpload: e => this.readFile(e, src => { const k = d.licFront ? 'licBack' : 'licFront'; this.putPhoto(SLOT[k], src, v => this.setD(k, v), () => this.setD(k, '')); }), onLicBack: e => this.readFile(e, src => this.putPhoto(SLOT.licBack, src, v => this.setD('licBack', v), () => this.setD('licBack', ''))),
-      clearLicFront: () => { this.dropFile(SLOT.licFront); this.save({ d: { ...d, licFront: '', licPoints: '', licNumber: '', licExpiry: '' } }); }, clearLicBack: () => { this.dropFile(SLOT.licBack); this.save({ d: { ...d, licBack: '', licPoints: '', licNumber: '', licExpiry: '' } }); },
-      viewLicFront: () => d.licFront && this.setState({ preview: { src: d.licFront, title: 'Driving licence · front', aspect: '85/54' } }),
-      viewLicBack: () => d.licBack && this.setState({ preview: { src: d.licBack, title: 'Driving licence · back', aspect: '85/54' } }),
-      viewSelfie: () => d.selfie && this.setState({ preview: { src: d.selfie, title: 'Your photo', aspect: '3/4' } }),
-      previewOpen: !!this.state.preview, previewAspect: this.state.preview && this.state.preview.aspect || '85/54', previewMax: this.state.preview && this.state.preview.aspect === '3/4' ? '360px' : '640px', previewBg: bg(this.state.preview && this.state.preview.src), stopClick: e => e.stopPropagation(), previewTitle: this.state.preview ? this.state.preview.title : '', closePreview: () => this.setState({ preview: null }),
-      selfieBg: bg(d.selfie), rtwBg: bg(d.rtwPhoto), hasSelfie: !!d.selfie, noSelfie: !d.selfie, onSelfieFile: e => this.readFile(e, src => this.putPhoto(SLOT.selfie, src, v => this.setD('selfie', v), () => this.setD('selfie', ''))), clearSelfie: () => { this.dropFile(SLOT.selfie); this.setD('selfie', ''); },
-      review: [
-        { title: 'About you', rows: [ { k: 'Name', v: or(fullName) }, { k: 'Born', v: dobText }, { k: 'Gender', v: or(d.gender) }, { k: 'Trade', v: tradeText }, { k: 'Address', v: or(d.address) } ], edit: () => this.goStep(1) },
-        { title: 'Your photo', rows: [ { k: 'Site register', v: d.selfie ? 'Photo added' : 'Not taken' } ], edit: () => this.goStep(2) },
-        { title: 'Driving licence', rows: d.licFront && d.licBack ? [ { k: 'Number', v: or(d.licNumber) }, { k: 'Expires', v: d.licExpiry ? new Date(d.licExpiry).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not given' }, { k: 'Points', v: d.licPoints === '0' ? 'None' : or(d.licPoints) } ] : [ { k: 'Licence', v: 'Not given' } ], edit: () => this.goStep(3) },
-        { title: 'Cards', rows: cards.length ? cards.map(c => ({ k: c.name, v: c.detail })) : [ { k: 'None yet', v: contact + ' will sort these with you' } ], edit: () => this.goStep(4) },
-        { title: 'Right to work', rows: [ { k: rtw ? rtw.name : 'Not chosen', v: d.rtw === 'code' ? d.shareCode : d.rtwPhoto ? 'Photo added' : rtw && rtw.photo ? 'No photo' : '' } ], edit: () => this.goStep(5) },
-        { title: 'Getting paid', rows: [ { k: 'NI number', v: d.ni }, { k: d.accountName, v: d.sortCode + ' · ' + d.account } ], edit: () => this.goStep(6) },
-        { title: 'Emergency contact', rows: [ { k: or(d.ecName), v: [d.ecRel, d.ecPhone].filter(Boolean).join(' · ') || 'Not given' } ], edit: () => this.goStep(7) }
-      ],
-      sigRef: this.sigRef,
-      sigDown: e => { const x = this.sigCtx(); if (!x) return; this._drawing = true; e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId); const [px, py] = this.pt(e); x.beginPath(); x.moveTo(px, py); this._last = [px, py]; },
-      sigMove: e => { if (!this._drawing) return; const x = this.sigCtx(); const [px, py] = this.pt(e); x.lineTo(px, py); x.stroke(); const l = this._last || [px, py]; this._ink = (this._ink || 0) + Math.hypot(px - l[0], py - l[1]); this._last = [px, py]; if (!d.signed && this._ink > 80) this.setD('signed', true); },
-      sigUp: () => { this._drawing = false; },
-      clearSig: () => { const c = this.sigRef.current; if (c) { const x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height); } this._ink = 0; this.setD('signed', false); },
-      clearSigDisplay: d.signed ? 'block' : 'none',
-      doneBody: contact + ' checks your cards and approves you before ' + start + '. You\'ll get a text when that\'s done, and another with where to be and what time.',
-      doneRows: [ { k: 'Sent', v: (this._sentAt || new Date()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + (this._sentAt || new Date()).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) }, { k: 'Cards', v: cards.length ? cards.length + ' to check' : 'None sent' }, { k: 'Starts', v: start } ],
-      startAgain: () => { try { localStorage.removeItem(KEY); } catch (e) {} this.setState({ step: 0, d: { ...EMPTY }, cards: [], resumed: false }); },
-      showBar: this.state.ready && !this.state.closed && step < 9, showBack: step > 0 && !this.state.sending,
-      nextLabel: this.state.sending ? 'Sending…' : step === 0 ? 'Start' : step === 8 ? (d.signed ? 'Send to ' + contact : 'Sign above to send') : step === 3 && !d.licFront && !d.licBack ? 'Next, no licence' : step === 4 && !cards.length ? 'Next, no cards yet' : 'Next',
-      nextDisabled: !canNext || this.state.sending,
-      next: () => { if (!canNext || this.state.sending) return; if (step === 8 && TOKEN) { this.submit(); return; } this.goStep(step + 1); },
-      back: () => this.goStep(step - 1), backLabel: step === 1 ? 'Back' : 'Back to ' + (labels[step - 1] || '').toLowerCase(),
-      wideProps: { style: { width: '100%', height: 52, fontSize: 16 } }
+      onCardFile: e => this.readFile(e, src => this.addCard(src, contact)),
+      onCardBack: e => this.readFile(e, src => this.addCardBack(src)),
+      cards: cards.map(c => {
+        const needsBack = !c.back && !c.reading;
+        const shown = c.reading ? { name: 'Saving the card', detail: 'Uploading the photo', tone: 'info', word: 'saving' }
+          : needsBack ? { detail: 'Front done. Back still needed.' } : {};
+        return { ...c, ...shown, needsBack, complete: !needsBack, shootBack: () => this.openCamera('onCardBack'),
+          bg: bg(c.src), backBg: bg(c.back), backBorder: c.back ? 'transparent' : 'var(--dash)',
+          remove: remove(c), viewFront: view(c, 'front'), viewBack: view(c, 'back') };
+      })
     };
+  }
+  licenceVals(d) {
+    const none = d.licPoints === '0';
+    // After the front, go straight on to the back.
+    const thenBack = () => { if (!this.state.d.licBack) setTimeout(() => this.openCamera('onLicBack', { hint: 'Now turn the licence over and fit the back in the frame.' }), 50); };
+    return {
+      hasLicence: !!d.licFront && !!d.licBack, hasLicFront: !!d.licFront, noLicFront: !d.licFront, hasLicBack: !!d.licBack, noLicBack: !d.licBack,
+      licFrontBg: bg(d.licFront), licBackBg: bg(d.licBack),
+      onLicFront: this.onPhoto('licFront', thenBack), onLicBack: this.onPhoto('licBack'),
+      onLicUpload: e => this.onPhoto(d.licFront ? 'licBack' : 'licFront')(e),
+      viewLicFront: this.view(d.licFront, 'Driving licence · front', '85/54'),
+      viewLicBack: this.view(d.licBack, 'Driving licence · back', '85/54'),
+      pointsTyped: none ? '' : d.licPoints, onPoints: e => this.setD('licPoints', e.target.value.replace(/\D/g, '').slice(0, 2)),
+      pickNoPoints: () => this.setD('licPoints', none ? '' : '0'), noPointsOn: none,
+      noPointsBorder: none ? 'var(--ink)' : 'var(--line)', noPointsBg: none ? 'var(--ink)' : 'transparent', noPointsColor: none ? 'var(--bg)' : 'var(--ink)'
+    };
+  }
+  rtwVals(d, rtw) {
+    return {
+      rtwOptions: RTW.map(r => { const on = d.rtw === r.id; return { ...r, on, pick: () => this.save({ d: { ...d, rtw: r.id, rtwPhoto: '', shareCode: '' } }),
+        bg: on ? 'var(--bg3)' : 'transparent', dotDisplay: on ? 'block' : 'none' }; }),
+      rtwNeedsPhoto: !!(rtw && rtw.photo), rtwNeedsCode: d.rtw === 'code',
+      rtwPhotoName: rtw && rtw.photo ? rtw.photo : '', rtwPhotoHint: rtw && rtw.hint ? rtw.hint : ''
+    };
+  }
+  review(d, cards, rtw, contact) {
+    const fullName = [d.firstName, d.surname].map(x => x.trim()).filter(Boolean).join(' ');
+    const edit = n => () => this.goStep(n);
+    const licence = d.licFront && d.licBack
+      ? [{ k: 'Number', v: or(d.licNumber) }, { k: 'Expires', v: d.licExpiry ? longDate(d.licExpiry) : 'Not given' },
+        { k: 'Points', v: d.licPoints === '0' ? 'None' : or(d.licPoints) }]
+      : [{ k: 'Licence', v: 'Not given' }];
+    const rtwV = d.rtw === 'code' ? d.shareCode : d.rtwPhoto ? 'Photo added' : rtw && rtw.photo ? 'No photo' : '';
+    return [
+      { title: 'About you', edit: edit(1), rows: [{ k: 'Name', v: or(fullName) }, { k: 'Born', v: d.dob ? longDate(d.dob) : 'Not given' },
+        { k: 'Gender', v: or(d.gender) }, { k: 'Trade', v: or((d.trade || '').trim()) }, { k: 'Address', v: or(d.address) }] },
+      { title: 'Your photo', edit: edit(2), rows: [{ k: 'Site register', v: d.selfie ? 'Photo added' : 'Not taken' }] },
+      { title: 'Driving licence', edit: edit(3), rows: licence },
+      { title: 'Cards', edit: edit(4), rows: cards.length ? cards.map(c => ({ k: c.name, v: c.detail }))
+        : [{ k: 'None yet', v: contact + ' will sort these with you' }] },
+      { title: 'Right to work', edit: edit(5), rows: [{ k: rtw ? rtw.name : 'Not chosen', v: rtwV }] },
+      { title: 'Getting paid', edit: edit(6), rows: [{ k: 'NI number', v: d.ni }, { k: d.accountName, v: d.sortCode + ' · ' + d.account }] },
+      { title: 'Emergency contact', edit: edit(7), rows: [{ k: or(d.ecName), v: [d.ecRel, d.ecPhone].filter(Boolean).join(' · ') || 'Not given' }] }
+    ];
+  }
+  // Signing: enough ink (80px of line) counts as signed.
+  signVals(d) {
+    return {
+      sigRef: this.sigRef,
+      sigDown: e => {
+        const x = this.sigCtx(); if (!x) return;
+        this._drawing = true; e.target.setPointerCapture && e.target.setPointerCapture(e.pointerId);
+        const [px, py] = this.pt(e); x.beginPath(); x.moveTo(px, py); this._last = [px, py];
+      },
+      sigMove: e => {
+        if (!this._drawing) return;
+        const x = this.sigCtx(), [px, py] = this.pt(e), l = this._last || [px, py];
+        x.lineTo(px, py); x.stroke();
+        this._ink = (this._ink || 0) + Math.hypot(px - l[0], py - l[1]); this._last = [px, py];
+        if (!d.signed && this._ink > 80) this.setD('signed', true);
+      },
+      sigUp: () => { this._drawing = false; },
+      clearSig: () => {
+        const c = this.sigRef.current; if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+        this._ink = 0; this.setD('signed', false);
+      },
+      clearSigDisplay: d.signed ? 'block' : 'none'
+    };
+  }
+  doneRows(cards, start) {
+    const at = this._sentAt || new Date();
+    const when = at.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + at.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return [{ k: 'Sent', v: when }, { k: 'Cards', v: cards.length ? cards.length + ' to check' : 'None sent' }, { k: 'Starts', v: start }];
+  }
+  nextLabel(step, d, cards, contact) {
+    if (this.state.sending) return 'Sending…';
+    if (step === 0) return 'Start';
+    if (step === TOTAL) return d.signed ? 'Send to ' + contact : 'Sign above to send';
+    if (step === 3 && !d.licFront && !d.licBack) return 'Next, no licence';
+    if (step === 4 && !cards.length) return 'Next, no cards yet';
+    return 'Next';
   }
 }
 </script>
