@@ -252,6 +252,9 @@ a:hover{opacity:.45}
   <script src="_ds/formattion-platform-design-system-d1b4df47-ea14-4ef5-9abb-b9c5ae14bca7/_ds_bundle.js"></script>
   <style>
     html, body { min-height: 100%; margin: 0; background: var(--bg); }
+    /* Phones and tablets: 16px fields so iOS doesn't zoom in on tap; nothing slides sideways. */
+    html, body { overflow-x: clip; }
+    @media (pointer: coarse) { input, textarea, select { font-size: 16px !important; } }
     a { color: var(--ink); text-decoration: none; } a:hover { opacity: .45; }
     input, button, textarea { font-family: inherit; }
     input[type="date"] { color-scheme: light; }
