@@ -4,6 +4,11 @@
 
 const __ds_ns = (window.FormattionPlatformDesignSystem_d1b4df = window.FormattionPlatformDesignSystem_d1b4df || {});
 
+// The page runtime can run this file twice (once as the page loads, again from <helmet>). A second
+// run would hand React new component functions, so every Input remounts and drops focus. Run once.
+if (__ds_ns.__loaded) return;
+__ds_ns.__loaded = true;
+
 const __ds_scope = {};
 
 (__ds_ns.__errors = __ds_ns.__errors || []);

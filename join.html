@@ -448,7 +448,7 @@ a:hover{opacity:.45}
         </div>
         <sc-if value="{{ hasLicence }}" hint-placeholder-val="{{ false }}">
           <div class="stack-16">
-            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" auto-capitalize="sentences" label="Licence number" placeholder="BAILE 911034 TB9AB" value="{{ d.licNumber }}" on-change="{{ set.licNumber }}" hint="Field 5 on the front." hint-size="100%,96px"></x-import>
+            <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" auto-capitalize="characters" label="Licence number" placeholder="BAILE 911034 TB9AB" value="{{ d.licNumber }}" on-change="{{ set.licNumber }}" hint="Field 5 on the front." hint-size="100%,96px"></x-import>
           <div class="stack-8">
             <div style="display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:4px;align-items:end">
               <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Expiry date" type="tel" placeholder="dd/mm/yyyy" value="{{ expCal.typed }}" on-change="{{ expCal.onTyped }}" hint-size="100%,72px"></x-import>
@@ -822,6 +822,29 @@ const fmtNi = (v, prev) => {
   return out;
 };
 
+// dd/mm/yyyy, adding the slash as you type unless you're deleting.
+const fmtDate = (v, prev) => {
+  const dg = v.replace(/\D/g, '').slice(0, 8);
+  let out = [dg.slice(0, 2), dg.slice(2, 4), dg.slice(4)].filter(Boolean).join('/');
+  if (v.length >= prev.length && (dg.length === 2 || dg.length === 4)) out += '/';
+  return out;
+};
+// UK driving licence numbers. GB (DVLA): 16 characters, BAILE 911034 TB9AB: five of the surname
+// (9s pad a short one), six digits from the birth date (month +5 for women), two initials (9 pads),
+// a digit, two check letters. Northern Ireland (DVA): 8 digits. Anything else can't be typed.
+const LIC_GB = [/[A-Z9]/, /[A-Z9]/, /[A-Z9]/, /[A-Z9]/, /[A-Z9]/, /\d/, /[0156]/, /\d/, /[0-3]/, /\d/, /\d/,
+  /[A-Z9]/, /[A-Z9]/, /\d/, /[A-Z]/, /[A-Z]/];
+const LIC_RE = /^([A-Z9]{5}\d(0[1-9]|1[0-2]|5[1-9]|6[0-2])(0[1-9]|[12]\d|3[01])\d[A-Z9]{2}\d[A-Z]{2}|\d{8})$/;
+const fmtLicence = (v, prev) => {
+  const raw = v.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (/^\d/.test(raw)) return raw.replace(/\D/g, '').slice(0, 8);
+  let c = '';
+  for (const ch of raw) { if (LIC_GB[c.length].test(ch)) c += ch; if (c.length === 16) break; }
+  let out = [c.slice(0, 5), c.slice(5, 11), c.slice(11)].filter(Boolean).join(' ');
+  if (v.length >= prev.length && (c.length === 5 || c.length === 11)) out += ' ';
+  return out;
+};
+
 // Photo as a CSS background. The runtime splits inline styles on ';', which cuts a
 // data: URL (data:image/jpeg;base64,…) in half, so data URLs go in as blob: URLs.
 const BLOBS = new Map();
@@ -861,7 +884,7 @@ const restore = s => {
 // What each step needs before Next.
 const READY = {
   1: (d, x) => d.firstName.trim() && d.surname.trim() && d.dob && d.gender && (d.trade || '').trim() && x.addrOk,
-  3: (d, x) => !x.licHalf && (!d.licFront || (d.licPoints !== '' && d.licNumber.trim().length >= 16 && ISO_RE.test(d.licExpiry))),
+  3: (d, x) => !x.licHalf && (!d.licFront || (d.licPoints !== '' && LIC_RE.test(d.licNumber.replace(/\s/g, '')) && ISO_RE.test(d.licExpiry))),
   4: (d, x) => !x.reading && !x.pendingBack,
   5: (d, x) => d.rtw && (!x.rtw || !x.rtw.photo || d.rtwPhoto) && (d.rtw !== 'code' || d.shareCode.trim().length >= 9),
   6: d => /^[A-Z]{2}\d{6}[A-D]?$/i.test(d.ni.replace(/\s/g, '')) && d.accountName.trim().length > 1
@@ -1082,8 +1105,9 @@ class Component extends DCLogic {
         color: sel ? 'var(--bg)' : 'var(--ink)', opacity: inMonth ? 1 : .35, pick: () => { setIso(cIso); setCal({ typed: null, y, m }); } });
     }
     if (cells.slice(35).every(c => c.opacity < 1)) cells.length = 35;
+    const typed = st.typed != null ? st.typed : (iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4) : '');
     const onTyped = e => {
-      const v = e.target.value, mm = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      const v = fmtDate(e.target.value, typed), mm = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       if (mm) {
         const n = mm[3] + '-' + pad(mm[2]) + '-' + pad(mm[1]), dt = new Date(n);
         if (!isNaN(dt) && dt.getDate() === +mm[1]) { setIso(n); setCal({ typed: null, y: +mm[3], m: +mm[2] - 1 }); return; }
@@ -1091,8 +1115,7 @@ class Component extends DCLogic {
       setCal({ typed: v });
     };
     return {
-      typed: st.typed != null ? st.typed : (iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4) : ''),
-      open, closed: !open, label: open ? 'Hide calendar' : 'Pick a date', onTyped,
+      typed, open, closed: !open, label: open ? 'Hide calendar' : 'Pick a date', onTyped,
       toggle: () => setCal(open ? { open: false } : { open: true, ...shown }),
       openCal: () => setCal({ open: true, ...shown }), done: () => setCal({ open: false }),
       year: String(Y), month: MONTHS[M], days: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'], cells,
@@ -1174,6 +1197,7 @@ class Component extends DCLogic {
     set.ni = e => this.setD('ni', fmtNi(val(e) || '', d.ni || ''));
     set.account = e => this.setD('account', (val(e) || '').replace(/\D/g, '').slice(0, 8));
     set.postcode = e => this.setD('postcode', fmtPc(val(e) || ''));
+    set.licNumber = e => this.setD('licNumber', fmtLicence(val(e) || '', d.licNumber || ''));
     return set;
   }
   cameraVals(camera, shot, rtwTitle) {

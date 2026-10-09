@@ -234,7 +234,7 @@
         <form style="display:flex;flex-direction:column;gap:16px" onSubmit="{{ sendInvite }}">
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="First name" placeholder="Tom" value="{{ inv.name }}" on-change="{{ onInvName }}" hint-size="100%,72px"></x-import>
           <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Mobile" type="tel" placeholder="07700 900123" value="{{ inv.phone }}" on-change="{{ onInvPhone }}" hint="The link goes by text and lasts 7 days. They can come back to it until they submit; then it closes." hint-size="100%,96px"></x-import>
-          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Starts on" placeholder="Monday 5 Oct" value="{{ inv.start }}" on-change="{{ onInvStart }}" hint="Optional. Their cards must be approved before this day." hint-size="100%,96px"></x-import>
+          <x-import component-from-global-scope="FormattionPlatformDesignSystem_d1b4df.Input" label="Starts on" type="tel" placeholder="dd/mm/yyyy" value="{{ inv.start }}" on-change="{{ onInvStart }}" hint="Optional. Their cards must be approved before this day." hint-size="100%,96px"></x-import>
           <sc-if value="{{ inviteError }}" hint-placeholder-val="{{ false }}"><p role="alert" style="font-size:14px;color:var(--bad-fg);text-wrap:pretty">{{ inviteError }}</p></sc-if>
         </form>
         <div style="background:var(--bg2);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:4px">
@@ -889,6 +889,19 @@ function draftFor(r) {
   return 'Dear ' + r.contractor + ',\n\nRe: ' + r.project + ' — release of retention\n\nThe defects liability period on this contract ended on ' + dLong(r.due) + '. The second half of retention, ' + gbp(r.amount) + ', is now due for release under the contract.\n\nPlease confirm the release and the date payment will be made. If there are any outstanding defects you believe affect this, send us the list and we will attend within 7 days.\n\nKind regards,\nDavid Reape\nWoodleaze';
 }
 
+// dd/mm/yyyy, adding the slash as you type unless you're deleting.
+const fmtDate = (v, prev) => {
+  const dg = v.replace(/\D/g, '').slice(0, 8);
+  let out = [dg.slice(0, 2), dg.slice(2, 4), dg.slice(4)].filter(Boolean).join('/');
+  if (v.length >= prev.length && (dg.length === 2 || dg.length === 4)) out += '/';
+  return out;
+};
+// '05/10/2026' -> 'Monday 5 October'; '' while the date isn't complete or real.
+const dayText = v => {
+  const m = (v || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if (!m) return '';
+  const dt = new Date(+m[3], +m[2] - 1, +m[1]);
+  return dt.getDate() === +m[1] ? dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
+};
 class Component extends DCLogic {
   state = { screen: 'today', from: 'today', selId: null, opId: null, unitId: null, candId: null, pjId: null, inv: { name: '', phone: '', start: '' }, invites: [], live: null, candUrls: null, inviteResult: null, inviteError: '', busy: false, copied: false, approved: [], history: [], scrolled: false, wide: window.innerWidth >= 1040, mobile: window.innerWidth <= 768, mobileStyle: (new URLSearchParams(location.search).get('m')) || 'summary', safeTop: +(new URLSearchParams(location.search).get('top')) || 0, chatOpen: false, messages: [], claimed: {}, draft: '', drafting: false, ask: '', askReply: '', mailbox: null };
   // Live rows from Supabase when the platform is logged in; the mock data stays for the preview.
@@ -1178,8 +1191,8 @@ class Component extends DCLogic {
       startInvite: () => this.go('invite', { from: 'operatives' }),
       onInvName: e => this.setState({ inv: { ...inv, name: e.target.value } }),
       onInvPhone: e => this.setState({ inv: { ...inv, phone: e.target.value } }),
-      onInvStart: e => this.setState({ inv: { ...inv, start: e.target.value } }),
-      inviteText: 'Hi ' + (inv.name.trim() || 'Tom') + ', David at Woodleaze has added you. Tap the link, photograph your cards and you\'re set for ' + (inv.start.trim() || 'your first day') + '. Link works once, for 7 days.',
+      onInvStart: e => this.setState({ inv: { ...inv, start: fmtDate(e.target.value, inv.start) } }),
+      inviteText: 'Hi ' + (inv.name.trim() || 'Tom') + ', David at Woodleaze has added you. Tap the link, photograph your cards and you\'re set for ' + (dayText(inv.start) || 'your first day') + '. Link works once, for 7 days.',
       inviteExpiry: new Date(this.state.inviteResult && this.state.inviteResult.expiresAt ? this.state.inviteResult.expiresAt : TODAY.getTime() + 7 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
       invitedHeadline: (this.state.inviteResult && !this.state.inviteResult.sent ? 'Link ready for ' : 'Sent to ') + inv.name.trim() + (this.state.inviteResult && !this.state.inviteResult.sent ? '.' : ' on ' + inv.phone.trim() + '.'),
       candDetailsNote: cand.live ? '· typed by them' : '· filled by For', candCardsNote: cand.live ? '· number and date to check' : '· read by For',
