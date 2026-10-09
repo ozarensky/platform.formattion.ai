@@ -43,7 +43,7 @@
 
 <div style="min-height:100vh;background:var(--bg);font-family:var(--sans);color:var(--ink-body);display:flex;flex-direction:column;padding-right:{{ contentInset }};padding-left:{{ contentInsetLeft }};box-sizing:border-box;transition:padding .3s cubic-bezier(.4,0,.2,1)">
 
-  <x-import component-from-global-scope="PlatformTopBar" from="./TopBar.jsx" items="{{ menuItems }}" secondary="{{ menuSecondary }}" current="{{ menuCurrent }}" on-select="{{ onMenu }}" footer="{{ menuFooter }}" logo-src="{{ clientLogo }}" safe-top="{{ safeTop }}" hint-size="100%,0px"></x-import>
+  <x-import component-from-global-scope="PlatformTopBar" from="./TopBar.js" items="{{ menuItems }}" secondary="{{ menuSecondary }}" current="{{ menuCurrent }}" on-select="{{ onMenu }}" footer="{{ menuFooter }}" logo-src="{{ clientLogo }}" safe-top="{{ safeTop }}" hint-size="100%,0px"></x-import>
 
   <div style="height:{{ topOffset }}"></div>
 

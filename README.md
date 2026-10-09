@@ -23,7 +23,7 @@ Open `Platform.dc.html` and `Landing Page.dc.html` directly in a browser to expl
 - Copy: plain, British, sentence case, lowercase menu items, no exclamation marks. Brand lowercase "formattion ai".
 
 ## Global chrome (Platform)
-- **Top bar** (`TopBar.jsx`): fixed glass bar inset 10px, 100px tall, with a 32px paper fade below. Cross icon (left, 44px hit area) opens a 260px glass menu that slides/fades in (.3s): items `today · projects · money · operatives · equipment` (22/300 lowercase), secondary `company` (18/300), footer "FORMATTION AI LTD / PLATFORM 0.1". Client logo slot on the right (max 36px tall). Theme toggle.
+- **Top bar** (`TopBar.js`): fixed glass bar inset 10px, 100px tall, with a 32px paper fade below. Cross icon (left, 44px hit area) opens a 260px glass menu that slides/fades in (.3s): items `today · projects · money · operatives · equipment` (22/300 lowercase), secondary `company` (18/300), footer "FORMATTION AI LTD / PLATFORM 0.1". Client logo slot on the right (max 36px tall). Theme toggle.
 - **No section label** under the bar; content starts 150px from the top.
 - **Content width**: 640px centred for list screens and flows; **1120px** for dashboards (Today, Project, Operative, Equipment unit, Retention, Company). 20px side gutters, 140px bottom padding.
 - **Back arrow** fixed bottom-left (left 44, bottom 39, 44×44): steps through in-app history. Hidden on Today with empty history. Hover translates −5px.
@@ -110,7 +110,7 @@ screen, history[], selected ids (selId, opId, unitId, candId, pjId), invite form
 - `Platform.dc.html` — all platform screens, logic and mock data (`RETENTIONS`, `PROJECTS`, `OPERATIVES`, `EQUIPMENT`, `PENDING`, `PEOPLE`).
 - `Landing Page.dc.html` — one-time-code log-in.
 - `join.html` — operative intake form. `join.html?t=<token>` is a live invite; opened without a token it is a preview that keeps nothing.
-- `TopBar.jsx` — glass top bar + menu.
+- `TopBar.js` — glass top bar + menu.
 - `support.js` — DC runtime (reference only).
 - `assets/` — lockups, mark, wordmarks, scroll pill script + pictogram.
 - `_ds/` — formattion Platform Design System: tokens, components bundle, guide.
