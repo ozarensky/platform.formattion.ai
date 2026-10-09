@@ -109,6 +109,7 @@ screen, history[], selected ids (selId, opId, unitId, candId, pjId), invite form
 - `Mobile Preview.dc.html` + `ios-frame.jsx` — phone canvas: `Platform.dc.html?top=54&m=summary&screen=…` deep links (`screen`: today/projects/money/operatives/equipment/company/project&id=/operative&id=/unit&id=/detail&id=/invite/approve&id=).
 - `Platform.dc.html` — all platform screens, logic and mock data (`RETENTIONS`, `PROJECTS`, `OPERATIVES`, `EQUIPMENT`, `PENDING`, `PEOPLE`).
 - `Landing Page.dc.html` — one-time-code log-in.
+- `join.html` — operative intake form. `join.html?t=<token>` is a live invite; opened without a token it is a preview that keeps nothing.
 - `TopBar.jsx` — glass top bar + menu.
 - `support.js` — DC runtime (reference only).
 - `assets/` — lockups, mark, wordmarks, scroll pill script + pictogram.
