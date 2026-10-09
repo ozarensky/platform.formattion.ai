@@ -720,13 +720,14 @@ class Component extends DCLogic {
   }
   componentDidMount() {
     try {
-      const raw = localStorage.getItem(KEY);
+      let raw = localStorage.getItem(KEY);
+      if (raw && (JSON.parse(raw).step || 0) >= 9) { localStorage.removeItem(KEY); raw = null; }
       if (raw) { const s = JSON.parse(raw); if (s.d) { s.d.signed = false; s.d = { ...EMPTY, ...s.d }; if (!s.d.trade && Array.isArray(s.d.trades)) s.d.trade = (s.d.trades.find(x => x && x.trim()) || ''); delete s.d.trades; delete s.d.county; delete s.d.addrMode; } if (s.d && s.d.fullName && !s.d.firstName) { const p = s.d.fullName.trim().split(/\s+/); s.d.firstName = p.shift() || ''; s.d.surname = p.join(' '); } if (s.d && !Array.isArray(s.d.trades)) s.d.trades = (s.d.trade || '').split(',').map(x => x.trim()).filter(Boolean); if (s.d && !s.d.trades.length) s.d.trades = ['']; if (s.d && s.d.licExpiry && !/^\d{4}-\d{2}-\d{2}$/.test(s.d.licExpiry)) s.d.licExpiry = ''; if (s.d && s.d.rtw === 'none') s.d.rtw = ''; if (s.d) ['selfie', 'rtwPhoto', 'licFront', 'licBack'].forEach(k => { if (s.d[k] === 'kept') s.d[k] = ''; }); this.setState({ step: s.step || 0, d: { ...EMPTY, ...s.d }, cards: (s.cards || []).filter(c => c.src && c.src !== 'kept' && c.src !== '').map(c => ({ ...c, reading: false, back: c.back === 'kept' ? '' : (c.back || '') })), resumed: (s.step || 0) > 0 && s.step < 9 }); return; }
     } catch (e) {}
     const st = this.props.startStep; if (st != null && st > 0) this.setState({ step: Number(st) });
     if (this.props.showCamera) this.setState({ camera: { handler: 'onCardFile', facing: 'environment', aspect: '85/54', radius: 12, title: 'Front of the card' } });
   }
-  save(extra) { this.setState(extra, () => { try { const { step, d, cards } = this.state; localStorage.setItem(KEY, JSON.stringify({ step, d, cards })); } catch (e) {} }); }
+  save(extra) { this.setState(extra, () => { try { const { step, d, cards } = this.state; if (step >= 9) localStorage.removeItem(KEY); else localStorage.setItem(KEY, JSON.stringify({ step, d, cards })); } catch (e) {} }); }
   setD(k, v) { this.save({ d: { ...this.state.d, [k]: v } }); }
   goStep(step) { this._ink = 0; this.save({ step, d: { ...this.state.d, signed: false } }); window.scrollTo(0, 0); }
   readFile(e, cb) { if (typeof e === 'string') { cb(e); return; } const f = e.target.files && e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => cb(r.result); r.readAsDataURL(f); e.target.value = ''; }
